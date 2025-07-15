@@ -1,0 +1,67 @@
+.caja-container {
+  padding: 1rem;
+}
+
+.caja-titulo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+.caja-formulario {
+  margin-bottom: 1rem;
+}
+
+.caja-input {
+  padding: 0.5rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 0.25rem;
+}
+
+.caja-boton {
+  margin-left: 0.5rem;
+  background-color: #4299e1;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+.caja-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.caja-tabla th,
+.caja-tabla td {
+  border: 1px solid #e2e8f0;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.caja-total {
+  margin-top: 1.5rem;
+  text-align: right;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.caja-finalizar {
+  background-color: #38a169;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.25rem;
+  margin-top: 0.5rem;
+  cursor: pointer;
+}
+.caja-eliminar {
+  background-color: #e53e3e;
+  color: white;
+  border: none;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}

@@ -1,57 +1,39 @@
-import { useState } from 'react';
+import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { UsuarioContexto } from '../contextos/UsuarioContexto';
+import '../estilos/login.css';
 
-function PaginaLogin() {
-  const [correo, setCorreo] = useState('');
-  const [clave, setClave] = useState('');
-  const [mensaje, setMensaje] = useState('');
-  const navegar = useNavigate();
+const Login = () => {
+  const navigate = useNavigate();
+  const { login } = useContext(UsuarioContexto);
 
-  const iniciarSesion = (e) => {
+  const manejarLogin = (e) => {
     e.preventDefault();
 
-    const usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
-    const usuarioEncontrado = usuarios.find(
-      (u) => u.correo === correo && u.clave === clave
-    );
+    const datosSimulados = {
+      nombre: 'Carlos',
+      rol: 'admin'
+    };
 
-    if (!usuarioEncontrado) {
-      setMensaje('❌ Usuario o contraseña incorrectos.');
-      return;
-    }
-
-    localStorage.setItem('usuarioActivo', JSON.stringify(usuarioEncontrado));
-    setMensaje('✅ Bienvenido ' + usuarioEncontrado.nombre);
-    setTimeout(() => navegar('/'), 1500);
+    login(datosSimulados);
+    navigate('/');
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: 'auto' }}>
-      <h2>Iniciar Sesión</h2>
-      <form onSubmit={iniciarSesion}>
-        <div>
-          <label>Correo electrónico</label>
-          <input
-            type="email"
-            value={correo}
-            onChange={(e) => setCorreo(e.target.value)}
-            required
-          />
+    <div className="login-container">
+      <div className="login-card">
+        <h2 className="login-title">Iniciar Sesión</h2>
+        <form className="login-form" onSubmit={manejarLogin}>
+          <input type="text" placeholder="Usuario" className="login-input" required />
+          <input type="password" placeholder="Contraseña" className="login-input" required />
+          <button type="submit" className="login-button">Ingresar</button>
+        </form>
+        <div className="login-link">
+          ¿No tienes cuenta? <a href="/registro">Regístrate</a>
         </div>
-        <div>
-          <label>Contraseña</label>
-          <input
-            type="password"
-            value={clave}
-            onChange={(e) => setClave(e.target.value)}
-            required
-          />
-        </div>
-        {mensaje && <p>{mensaje}</p>}
-        <button type="submit">Entrar</button>
-      </form>
+      </div>
     </div>
   );
-}
+};
 
-export default PaginaLogin;
+export default Login;

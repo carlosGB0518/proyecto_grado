@@ -1,26 +1,29 @@
 import { createContext, useEffect, useState } from 'react';
 
-
 export const UsuarioContexto = createContext();
 
-export function ProveedorUsuario({ children }) {
+export function UsuarioProvider({ children }) {
   const [usuario, setUsuario] = useState(null);
 
   useEffect(() => {
-    const obtenerUsuario = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUsuario(data.user);
-    };
-
-    obtenerUsuario();
-
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setUsuario(session?.user || null);
-    });
+    const usuarioGuardado = localStorage.getItem('usuario');
+    if (usuarioGuardado) {
+      setUsuario(JSON.parse(usuarioGuardado));
+    }
   }, []);
 
+  const login = (datosUsuario) => {
+    localStorage.setItem('usuario', JSON.stringify(datosUsuario));
+    setUsuario(datosUsuario);
+  };
+
+  const logout = () => {
+    localStorage.removeItem('usuario');
+    setUsuario(null);
+  };
+
   return (
-    <UsuarioContexto.Provider value={{ usuario, setUsuario }}>
+    <UsuarioContexto.Provider value={{ usuario, setUsuario, login, logout }}>
       {children}
     </UsuarioContexto.Provider>
   );

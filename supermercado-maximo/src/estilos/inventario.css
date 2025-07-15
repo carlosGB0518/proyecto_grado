@@ -1,0 +1,35 @@
+.inventario-container {
+  padding: 1rem;
+}
+
+.inventario-form {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.inventario-form input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.inventario-form button {
+  background-color: #3182ce;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.inventario-tabla {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.inventario-tabla th, .inventario-tabla td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
