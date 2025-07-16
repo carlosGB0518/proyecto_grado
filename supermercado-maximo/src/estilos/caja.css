@@ -65,3 +65,12 @@
   cursor: pointer;
   font-size: 14px;
 }
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+select {
+  padding: 0.5rem;
+  font-size: 1rem;
+}

@@ -4,9 +4,10 @@ import LayoutBase from '../layouts/LayoutBase';
 import '../estilos/caja.css';
 
 const Caja = () => {
-  const { productos } = useContext(InventarioContexto); // ← inventario real
+  const { productos } = useContext(InventarioContexto);
   const [codigo, setCodigo] = useState('');
   const [carrito, setCarrito] = useState([]);
+  const [metodoPago, setMetodoPago] = useState('efectivo'); // 🆕 Estado para método de pago
 
   const agregarAlCarrito = (producto) => {
     const existe = carrito.find(p => p.id === producto.id);
@@ -42,9 +43,19 @@ const Caja = () => {
 
   const total = carrito.reduce((sum, p) => sum + p.precio * p.cantidad, 0);
 
-  const finalizarVenta = () => {
-    alert('Venta finalizada. Total: $' + total.toLocaleString());
-    setCarrito([]);
+  const guardarVenta = async () => {
+    const venta = {
+      productos: carrito,
+      total,
+      fecha: new Date().toISOString(),
+      metodoPago, // 🆕 Incluye el método de pago
+      usuario: "anónimo", // Aquí puedes usar usuario?.email si usas contexto de usuario
+    };
+
+    console.log("Venta realizada:", venta);
+
+    // Luego se conectará a backend/Supabase
+    // await supabase.from('ventas').insert([venta]);
   };
 
   return (
@@ -103,9 +114,30 @@ const Caja = () => {
         </table>
 
         <div className="caja-total">
-          Total: ${total.toLocaleString()}
+          <label>Método de pago:</label>
+          <select
+            value={metodoPago}
+            onChange={(e) => setMetodoPago(e.target.value)}
+            style={{ marginBottom: '10px' }}
+          >
+            <option value="efectivo">Efectivo</option>
+            <option value="tarjeta">Tarjeta</option>
+            <option value="nequi">Nequi</option>
+            <option value="daviplata">Daviplata</option>
+          </select>
           <br />
-          <button className="caja-finalizar" onClick={finalizarVenta}>Finalizar venta</button>
+          <strong>Total: ${total.toLocaleString()}</strong>
+          <br />
+          <button
+            onClick={() => {
+              guardarVenta();
+              setCarrito([]);
+              setCodigo('');
+            }}
+            disabled={carrito.length === 0}
+          >
+            Finalizar venta
+          </button>
         </div>
       </div>
     </LayoutBase>

@@ -33,3 +33,9 @@
   padding: 8px;
   text-align: left;
 }
+
+.stock-bajo {
+  background-color: #ffe5e5;
+  color: #c0392b;
+  font-weight: bold;
+}

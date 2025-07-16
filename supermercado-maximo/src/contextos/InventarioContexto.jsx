@@ -1,34 +1,53 @@
-import { createContext, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 
-// Crea el contexto
 export const InventarioContexto = createContext();
 
-// Proveedor del contexto
-export function InventarioProvider({ children }) {
-  const [productos, setProductos] = useState([
-    { id: 1, codigo: '123', nombre: 'Arroz Diana 1kg', precio: 5000 },
-    { id: 2, codigo: '456', nombre: 'Aceite Premier 900ml', precio: 9000 },
-    { id: 3, codigo: '789', nombre: 'Pan Tajado Bimbo', precio: 4800 }
-  ]);
+export const InventarioProvider = ({ children }) => {
+  const [productos, setProductos] = useState([]);
+
+  // Cargar desde localStorage al inicio
+  useEffect(() => {
+    const datosGuardados = localStorage.getItem('inventario');
+    if (datosGuardados) {
+      setProductos(JSON.parse(datosGuardados));
+    }
+  }, []);
+
+  // Guardar automáticamente en localStorage cuando cambia el estado
+  useEffect(() => {
+    localStorage.setItem('inventario', JSON.stringify(productos));
+  }, [productos]);
 
   const agregarProducto = (producto) => {
-    const nuevo = { ...producto, id: Date.now() };
-    setProductos(prev => [...prev, nuevo]);
+    const nuevoProducto = {
+      ...producto,
+      id: Date.now(), // ID único usando timestamp
+    };
+    setProductos([...productos, nuevoProducto]);
   };
 
   const editarProducto = (id, datosActualizados) => {
-    setProductos(prev =>
-      prev.map(p => (p.id === id ? { ...p, ...datosActualizados } : p))
+    const productosActualizados = productos.map((p) =>
+      p.id === id ? { ...p, ...datosActualizados } : p
     );
+    setProductos(productosActualizados);
   };
 
   const eliminarProducto = (id) => {
-    setProductos(prev => prev.filter(p => p.id !== id));
+    const filtrados = productos.filter((p) => p.id !== id);
+    setProductos(filtrados);
   };
 
   return (
-    <InventarioContexto.Provider value={{ productos, agregarProducto, editarProducto, eliminarProducto }}>
+    <InventarioContexto.Provider
+      value={{
+        productos,
+        agregarProducto,
+        editarProducto,
+        eliminarProducto,
+      }}
+    >
       {children}
     </InventarioContexto.Provider>
   );
-}
+};
