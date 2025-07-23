@@ -1,14 +1,17 @@
 .inicio-container {
   padding: 1rem;
+  font-family: 'Segoe UI';
 }
 
 .inicio-titulo {
+ font-family: 'Segoe UI';
   font-size: 1.5rem;
   font-weight: bold;
   margin-bottom: 1rem;
 }
 
 .inicio-parrafo {
+
   margin-bottom: 1.5rem;
   color: #4a5568; /* gris */
 }

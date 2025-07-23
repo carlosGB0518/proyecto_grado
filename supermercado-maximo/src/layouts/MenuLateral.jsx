@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
+import '../estilos/menulateral.css'
 
 function MenuLateral() {
   return (
-    <nav style={{ width: '200px', backgroundColor: '#f4f4f4', padding: '1rem' }}>
+    <div className='MenuLateral' >
+    <nav >
       <ul>
         <li><Link to="/">Inicio</Link></li>
         <li><Link to="/inventario">Inventario</Link></li>
@@ -10,6 +12,7 @@ function MenuLateral() {
         <li><Link to="/login">Iniciar Sesión</Link></li>
       </ul>
     </nav>
+    </div>
   );
 }
 

@@ -1,0 +1,20 @@
+.ventas-container {
+  padding: 20px;
+}
+
+.ventas-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.ventas-tabla th,
+.ventas-tabla td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+}
+
+.ventas-tabla th {
+  background-color: #f4f4f4;
+}

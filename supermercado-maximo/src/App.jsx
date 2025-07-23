@@ -8,6 +8,8 @@ import Inicio from './paginas/Inicio';
 import Caja from './paginas/Caja';
 import Inventario from './paginas/Inventario';
 
+import Ventas from './paginas/Ventas'; // o la ruta correspondiente
+
 function App() {
   return (
     <Routes>
@@ -16,6 +18,7 @@ function App() {
       <Route path="/" element={<RutaPrivada><Inicio /></RutaPrivada>} />
       <Route path="/caja" element={<RutaPrivada><Caja /></RutaPrivada>} />
       <Route path="/inventario" element={<RutaPrivada><Inventario /></RutaPrivada>} />
+      <Route path="/ventas" element={<Ventas />} />
     </Routes>
   );
 }
