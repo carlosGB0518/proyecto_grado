@@ -1,13 +1,14 @@
 import { useContext, useState } from 'react';
 import { InventarioContexto } from '../contextos/InventarioContexto';
 import LayoutBase from '../layouts/LayoutBase';
+import { supabase } from '../supabase';
 import '../estilos/caja.css';
 
 const Caja = () => {
   const { productos } = useContext(InventarioContexto);
   const [codigo, setCodigo] = useState('');
   const [carrito, setCarrito] = useState([]);
-  const [metodoPago, setMetodoPago] = useState('efectivo'); // 🆕 Estado para método de pago
+  const [metodoPago, setMetodoPago] = useState('efectivo');
 
   const agregarAlCarrito = (producto) => {
     const existe = carrito.find(p => p.id === producto.id);
@@ -25,6 +26,8 @@ const Caja = () => {
     const productoEncontrado = productos.find(p => p.codigo === codigo.trim());
     if (productoEncontrado) {
       agregarAlCarrito(productoEncontrado);
+    } else {
+      alert('⚠️ Producto no encontrado');
     }
     setCodigo('');
   };
@@ -45,17 +48,40 @@ const Caja = () => {
 
   const guardarVenta = async () => {
     const venta = {
-      productos: carrito,
       total,
       fecha: new Date().toISOString(),
-      metodoPago, // 🆕 Incluye el método de pago
-      usuario: "anónimo", // Aquí puedes usar usuario?.email si usas contexto de usuario
+      metodo_pago: metodoPago,
+      usuario: "anónimo",
     };
 
-    console.log("Venta realizada:", venta);
+    const { data: ventaInsertada, error: ventaError } = await supabase
+      .from('ventas')
+      .insert([venta])
+      .select()
+      .single();
 
-    // Luego se conectará a backend/Supabase
-    // await supabase.from('ventas').insert([venta]);
+    if (ventaError) {
+      console.error('Error guardando venta:', ventaError);
+      return;
+    }
+
+    const detalles = carrito.map(item => ({
+      venta_id: ventaInsertada.id,
+      producto_id: item.id,
+      cantidad: item.cantidad,
+      precio_unitario: item.precio,
+    }));
+
+    const { error: detalleError } = await supabase
+      .from('detalle_ventas')
+      .insert(detalles);
+
+    if (detalleError) {
+      console.error('Error guardando detalles de venta:', detalleError);
+      return;
+    }
+
+    alert('✅ Venta guardada correctamente');
   };
 
   return (

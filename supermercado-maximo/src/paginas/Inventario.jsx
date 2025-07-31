@@ -1,16 +1,10 @@
-import { useContext, useState } from 'react';
-import { InventarioContexto } from '../contextos/InventarioContexto';
+import { useEffect, useState } from 'react';
+import { supabase } from '../supabase';
 import LayoutBase from '../layouts/LayoutBase';
 import '../estilos/inventario.css';
 
 const Inventario = () => {
-  const {
-    productos,
-    agregarProducto,
-    editarProducto,
-    eliminarProducto,
-  } = useContext(InventarioContexto);
-
+  const [productos, setProductos] = useState([]);
   const [nuevoProducto, setNuevoProducto] = useState({
     codigo: '',
     nombre: '',
@@ -18,47 +12,58 @@ const Inventario = () => {
     stockActual: '',
     stockMinimo: '',
   });
-
   const [modoEdicion, setModoEdicion] = useState(null);
   const [codigoMovimiento, setCodigoMovimiento] = useState('');
   const [cantidadMovimiento, setCantidadMovimiento] = useState('');
+
+  // Cargar productos al iniciar
+  useEffect(() => {
+    cargarProductos();
+  }, []);
+
+  const cargarProductos = async () => {
+    const { data, error } = await supabase.from('productos').select('*');
+    if (error) {
+      alert('Error al cargar productos: ' + error.message);
+    } else {
+      setProductos(data);
+    }
+  };
 
   const manejarCambio = (e) => {
     setNuevoProducto({ ...nuevoProducto, [e.target.name]: e.target.value });
   };
 
-  const manejarAgregar = (e) => {
+  const manejarAgregar = async (e) => {
     e.preventDefault();
+    const { codigo, nombre, precio, stockActual, stockMinimo } = nuevoProducto;
 
-    if (
-      !nuevoProducto.codigo ||
-      !nuevoProducto.nombre ||
-      !nuevoProducto.precio ||
-      nuevoProducto.stockActual === '' ||
-      nuevoProducto.stockMinimo === ''
-    )
-      return;
+    if (!codigo || !nombre || !precio || stockActual === '' || stockMinimo === '') return;
 
-    const yaExiste = productos.some((p) => p.codigo === nuevoProducto.codigo);
-    if (yaExiste) {
-      alert('El código de producto ya existe');
-      return;
+    const { data, error } = await supabase
+      .from('productos')
+      .insert([
+        {
+          codigo,
+          nombre,
+          precio: parseInt(precio),
+          stockActual: parseInt(stockActual),
+          stockMinimo: parseInt(stockMinimo),
+        },
+      ]);
+
+    if (error) {
+      alert('Error al agregar producto: ' + error.message);
+    } else {
+      await cargarProductos();
+      setNuevoProducto({
+        codigo: '',
+        nombre: '',
+        precio: '',
+        stockActual: '',
+        stockMinimo: '',
+      });
     }
-
-    agregarProducto({
-      ...nuevoProducto,
-      precio: parseInt(nuevoProducto.precio),
-      stockActual: parseInt(nuevoProducto.stockActual),
-      stockMinimo: parseInt(nuevoProducto.stockMinimo),
-    });
-
-    setNuevoProducto({
-      codigo: '',
-      nombre: '',
-      precio: '',
-      stockActual: '',
-      stockMinimo: '',
-    });
   };
 
   const manejarEditar = (producto) => {
@@ -66,57 +71,79 @@ const Inventario = () => {
     setNuevoProducto(producto);
   };
 
-  const guardarEdicion = (e) => {
+  const guardarEdicion = async (e) => {
     e.preventDefault();
+    const { error } = await supabase
+      .from('productos')
+      .update({
+        nombre: nuevoProducto.nombre,
+        precio: parseInt(nuevoProducto.precio),
+        stockActual: parseInt(nuevoProducto.stockActual),
+        stockMinimo: parseInt(nuevoProducto.stockMinimo),
+      })
+      .eq('id', modoEdicion);
 
-    editarProducto(modoEdicion, {
-      ...nuevoProducto,
-      precio: parseInt(nuevoProducto.precio),
-      stockActual: parseInt(nuevoProducto.stockActual),
-      stockMinimo: parseInt(nuevoProducto.stockMinimo),
-    });
-
-    setModoEdicion(null);
-    setNuevoProducto({
-      codigo: '',
-      nombre: '',
-      precio: '',
-      stockActual: '',
-      stockMinimo: '',
-    });
-  };
-
-  const registrarEntrada = () => {
-    if (!codigoMovimiento || !cantidadMovimiento) return;
-
-    const producto = productos.find((p) => p.codigo === codigoMovimiento);
-    if (producto) {
-      editarProducto(producto.id, {
-        ...producto,
-        stockActual: producto.stockActual + parseInt(cantidadMovimiento),
+    if (error) {
+      alert('Error al editar: ' + error.message);
+    } else {
+      setModoEdicion(null);
+      await cargarProductos();
+      setNuevoProducto({
+        codigo: '',
+        nombre: '',
+        precio: '',
+        stockActual: '',
+        stockMinimo: '',
       });
-      setCodigoMovimiento('');
-      setCantidadMovimiento('');
     }
   };
 
-  const registrarSalida = () => {
-    if (!codigoMovimiento || !cantidadMovimiento) return;
+  const eliminarProducto = async (id) => {
+    if (!window.confirm('¿Eliminar producto?')) return;
 
+    const { error } = await supabase.from('productos').delete().eq('id', id);
+    if (error) {
+      alert('Error al eliminar: ' + error.message);
+    } else {
+      await cargarProductos();
+    }
+  };
+
+  const registrarEntrada = async () => {
+    const producto = productos.find((p) => p.codigo === codigoMovimiento);
+    if (producto) {
+      const nuevoStock = producto.stockActual + parseInt(cantidadMovimiento);
+      const { error } = await supabase
+        .from('productos')
+        .update({ stockActual: nuevoStock })
+        .eq('id', producto.id);
+      if (!error) {
+        await cargarProductos();
+        setCodigoMovimiento('');
+        setCantidadMovimiento('');
+      }
+    }
+  };
+
+  const registrarSalida = async () => {
     const producto = productos.find((p) => p.codigo === codigoMovimiento);
     if (producto) {
       const cantidadSalida = parseInt(cantidadMovimiento);
       if (cantidadSalida > producto.stockActual) {
-        alert('No hay suficiente stock para esta salida');
+        alert('Stock insuficiente');
         return;
       }
 
-      editarProducto(producto.id, {
-        ...producto,
-        stockActual: producto.stockActual - cantidadSalida,
-      });
-      setCodigoMovimiento('');
-      setCantidadMovimiento('');
+      const nuevoStock = producto.stockActual - cantidadSalida;
+      const { error } = await supabase
+        .from('productos')
+        .update({ stockActual: nuevoStock })
+        .eq('id', producto.id);
+      if (!error) {
+        await cargarProductos();
+        setCodigoMovimiento('');
+        setCantidadMovimiento('');
+      }
     }
   };
 
@@ -126,66 +153,18 @@ const Inventario = () => {
         <h2>Inventario</h2>
 
         <form onSubmit={modoEdicion ? guardarEdicion : manejarAgregar} className="inventario-form">
-          <input
-            type="text"
-            name="codigo"
-            placeholder="Código"
-            value={nuevoProducto.codigo}
-            onChange={manejarCambio}
-            required
-            disabled={modoEdicion !== null}
-          />
-          <input
-            type="text"
-            name="nombre"
-            placeholder="Nombre"
-            value={nuevoProducto.nombre}
-            onChange={manejarCambio}
-            required
-          />
-          <input
-            type="number"
-            name="precio"
-            placeholder="Precio"
-            value={nuevoProducto.precio}
-            onChange={manejarCambio}
-            required
-          />
-          <input
-            type="number"
-            name="stockActual"
-            placeholder="Stock actual"
-            value={nuevoProducto.stockActual}
-            onChange={manejarCambio}
-            required
-          />
-          <input
-            type="number"
-            name="stockMinimo"
-            placeholder="Stock mínimo"
-            value={nuevoProducto.stockMinimo}
-            onChange={manejarCambio}
-            required
-          />
-          <button type="submit">
-            {modoEdicion ? 'Guardar cambios' : 'Agregar producto'}
-          </button>
+          <input type="text" name="codigo" placeholder="Código" value={nuevoProducto.codigo} onChange={manejarCambio} required disabled={modoEdicion !== null} />
+          <input type="text" name="nombre" placeholder="Nombre" value={nuevoProducto.nombre} onChange={manejarCambio} required />
+          <input type="number" name="precio" placeholder="Precio" value={nuevoProducto.precio} onChange={manejarCambio} required />
+          <input type="number" name="stockActual" placeholder="Stock actual" value={nuevoProducto.stockActual} onChange={manejarCambio} required />
+          <input type="number" name="stockMinimo" placeholder="Stock mínimo" value={nuevoProducto.stockMinimo} onChange={manejarCambio} required />
+          <button type="submit">{modoEdicion ? 'Guardar cambios' : 'Agregar producto'}</button>
         </form>
 
         <div className="movimientos-stock">
           <h3>Registrar movimiento de stock</h3>
-          <input
-            type="text"
-            placeholder="Código"
-            value={codigoMovimiento}
-            onChange={(e) => setCodigoMovimiento(e.target.value)}
-          />
-          <input
-            type="number"
-            placeholder="Cantidad"
-            value={cantidadMovimiento}
-            onChange={(e) => setCantidadMovimiento(e.target.value)}
-          />
+          <input type="text" placeholder="Código" value={codigoMovimiento} onChange={(e) => setCodigoMovimiento(e.target.value)} />
+          <input type="number" placeholder="Cantidad" value={cantidadMovimiento} onChange={(e) => setCantidadMovimiento(e.target.value)} />
           <button onClick={registrarEntrada}>Entrada</button>
           <button onClick={registrarSalida}>Salida</button>
         </div>
@@ -203,10 +182,7 @@ const Inventario = () => {
           </thead>
           <tbody>
             {productos.map((p) => (
-              <tr
-                key={p.id}
-                className={p.stockActual < p.stockMinimo ? 'stock-bajo' : ''}
-              >
+              <tr key={p.id} className={p.stockActual < p.stockMinimo ? 'stock-bajo' : ''}>
                 <td>{p.codigo}</td>
                 <td>{p.nombre}</td>
                 <td>${p.precio.toLocaleString()}</td>
