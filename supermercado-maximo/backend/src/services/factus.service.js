@@ -46,7 +46,7 @@ async function factusRequest(method, url, body) {
 
 // API públicas
 export async function crearYValidarFactura(payload) {
-  return factusRequest("POST", "/api/facturas", payload);
+  return factusRequest("POST", "/crear-validar-factura", payload);
 }
 
 export async function descargarPdf(uuid) {
