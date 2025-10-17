@@ -16,9 +16,25 @@ const Inventario = () => {
   const [codigoMovimiento, setCodigoMovimiento] = useState('');
   const [cantidadMovimiento, setCantidadMovimiento] = useState('');
 
-  // Cargar productos al iniciar
+  // Cargar productos y escuchar cambios en tiempo real
   useEffect(() => {
     cargarProductos();
+
+    // 🔔 Escuchar cambios en tiempo real en la tabla 'productos'
+    const canal = supabase
+      .channel('realtime:productos')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'productos' },
+        () => {
+          cargarProductos(); // Refresca la lista cuando hay cambios
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(canal);
+    };
   }, []);
 
   const cargarProductos = async () => {
@@ -40,7 +56,7 @@ const Inventario = () => {
 
     if (!codigo || !nombre || !precio || stockActual === '' || stockMinimo === '') return;
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('productos')
       .insert([
         {
