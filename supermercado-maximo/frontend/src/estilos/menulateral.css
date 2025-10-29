@@ -11,6 +11,7 @@
 }
 
 .MenuLateral ul {
+  font-family: Calibri;
   list-style: none;
   display: flex;
   

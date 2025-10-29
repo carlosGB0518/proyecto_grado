@@ -9,13 +9,27 @@ const Caja = () => {
   const [codigo, setCodigo] = useState('');
   const [carrito, setCarrito] = useState([]);
   const [metodoPago, setMetodoPago] = useState('efectivo');
+  const [mensaje, setMensaje] = useState('');
 
   // 🛒 Agregar producto al carrito
   const agregarAlCarrito = (producto) => {
-    const existe = carrito.find(p => p.identificación === producto.identificación);
+    // Validar que haya stock disponible
+    if (!producto.stockActual || producto.stockActual <= 0) {
+      alert(`❌ ${producto.nombre} no tiene stock disponible`);
+      return;
+    }
+
+    const existe = carrito.find(p => p.id === producto.id);
+    
     if (existe) {
+      // Verificar que no se exceda el stock disponible
+      if (existe.cantidad >= producto.stockActual) {
+        alert(`⚠️ Stock máximo alcanzado para ${producto.nombre} (${producto.stockActual} unidades)`);
+        return;
+      }
+      
       const actualizado = carrito.map(p =>
-        p.identificación === producto.identificación
+        p.id === producto.id
           ? { ...p, cantidad: p.cantidad + 1 }
           : p
       );
@@ -44,82 +58,129 @@ const Caja = () => {
   };
 
   // 🗑️ Eliminar del carrito
-  const eliminarProducto = (identificación) => {
-    const nuevoCarrito = carrito.filter(item => item.identificación !== identificación);
+  const eliminarProducto = (id) => {
+    const nuevoCarrito = carrito.filter(item => item.id !== id);
     setCarrito(nuevoCarrito);
+  };
+
+  // 🔢 Cambiar cantidad de un producto
+  const cambiarCantidad = (id, nuevaCantidad) => {
+    if (nuevaCantidad < 1) return;
+    
+    const actualizado = carrito.map(p =>
+      p.id === id
+        ? { ...p, cantidad: nuevaCantidad }
+        : p
+    );
+    setCarrito(actualizado);
   };
 
   const total = carrito.reduce((sum, p) => sum + p.precio * p.cantidad, 0);
 
-  // 💾 Guardar venta y actualizar stock
+  // 💾 Guardar venta, actualizar stock y emitir factura
   const guardarVenta = async () => {
     if (carrito.length === 0) {
       alert('⚠️ No hay productos en el carrito');
       return;
     }
 
-    const venta = {
-      total,
-      fecha: new Date().toISOString(),
-      metodo_pago: metodoPago,
-      usuario: 'anónimo',
-    };
+    try {
+      // Crear objeto de venta
+      const venta = {
+        total,
+        metodo_pago: metodoPago,
+        cajero: 'anónimo',
+        fecha: new Date().toISOString(),
+      };
 
-    // 1️⃣ Insertar venta principal
-    const { data: ventaInsertada, error: ventaError } = await supabase
-      .from('ventas')
-      .insert([venta])
-      .select()
-      .single();
-
-    if (ventaError) {
-      console.error('Error guardando venta:', ventaError);
-      alert('❌ Error al guardar la venta');
-      return;
-    }
-
-    // 2️⃣ Insertar detalles de la venta
-    const detalles = carrito.map(item => ({
-      venta_id: ventaInsertada.id,
-      producto_id: item.identificación, // 👈 usar la clave real de la tabla
-      cantidad: item.cantidad,
-      precio_unitario: item.precio,
-    }));
-
-    const { error: detalleError } = await supabase
-      .from('detalle_venta') // 👈 nombre correcto según tu tabla
-      .insert(detalles);
-
-    if (detalleError) {
-      console.error('Error guardando detalles:', detalleError);
-      alert('❌ Error al guardar los detalles de la venta');
-      return;
-    }
-
-    // 3️⃣ Actualizar stock de productos
-    for (const item of carrito) {
-      const { data: productoActual, error: prodError } = await supabase
-        .from('productos')
-        .select('stock_actual')
-        .eq('identificación', item.identificación)
+      // 1️⃣ Insertar venta principal
+      const { data: ventaInsertada, error: ventaError } = await supabase
+        .from('ventas')
+        .insert([venta])
+        .select()
         .single();
 
-      if (!prodError && productoActual) {
-        const nuevoStock = productoActual.stock_actual - item.cantidad;
+      if (ventaError) throw new Error('Error al guardar la venta: ' + ventaError.message);
+
+      // 2️⃣ Insertar detalles de la venta
+      const detalles = carrito.map(item => ({
+        venta_id: ventaInsertada.id,
+        producto_id: item.id,
+        cantidad: item.cantidad,
+        precio_unitario: item.precio,
+      }));
+
+      const { error: detalleError } = await supabase
+        .from('ventas_detalle')
+        .insert(detalles);
+
+      if (detalleError) throw new Error('Error guardando detalles: ' + detalleError.message);
+
+      // 3️⃣ Actualizar stock
+      for (const item of carrito) {
+        const nuevoStock = item.stockActual - item.cantidad;
         const { error: updateError } = await supabase
           .from('productos')
-          .update({ stock_actual: nuevoStock })
-          .eq('identificación', item.identificación);
-
-        if (updateError) {
-          console.error(`Error actualizando stock de ${item.nombre}:`, updateError);
-        }
+          .update({ stockActual: nuevoStock })
+          .eq('id', item.id);
+        if (updateError) console.warn(`⚠️ Error actualizando stock de ${item.nombre}:`, updateError);
       }
-    }
 
-    alert('✅ Venta guardada y stock actualizado correctamente');
-    setCarrito([]);
-    setCodigo('');
+      // 4️⃣ Emitir factura automáticamente
+      const facturaPayload = {
+        cliente: {
+          tipoIdentificacionId: 3, // CC
+          numeroIdentificacion: "123456789",
+          nombre: "Cliente Genérico",
+          telefono: "3001234567",
+          direccion: "Calle de prueba",
+          email: "cliente@supermercado.com",
+          municipioId: 1
+        },
+        items: carrito.map((item, index) => ({
+          codigo: item.codigo,
+          descripcion: item.nombre,
+          cantidad: item.cantidad,
+          precioUnitario: item.precio,
+          descuento: 0,
+          impuesto: 19
+        })),
+        totales: {
+          descuento: 0,
+          impuestos: 0,
+          total: total
+        },
+        data: {
+          formaDePagoId: 1, // Contado
+          metodoPagoId: metodoPago === "tarjeta" ? 2 : 10, // efectivo = 10, tarjeta = 2
+          notas: "Gracias por su compra"
+        },
+        venta_id: ventaInsertada.id
+      };
+
+      const facturaResponse = await fetch('http://localhost:4000/api/facturas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(facturaPayload),
+      });
+
+      const facturaData = await facturaResponse.json();
+
+      if (!facturaResponse.ok) {
+        throw new Error(facturaData.error || 'Error al emitir factura');
+      }
+
+      console.log('✅ Factura emitida:', facturaData);
+      setMensaje(`✅ Venta completada y factura emitida (${facturaData.uuid || 'sin UUID'})`);
+
+      // 5️⃣ Limpiar carrito
+      setCarrito([]);
+      setCodigo('');
+
+    } catch (error) {
+      console.error('❌ Error al procesar venta:', error);
+      alert(`❌ Error al procesar venta: ${error.message}`);
+    }
   };
 
   return (
@@ -127,81 +188,130 @@ const Caja = () => {
       <div className="caja-container">
         <h2 className="caja-titulo">Punto de Venta</h2>
 
-        <div className="caja-formulario">
-          <input
-            type="text"
-            autoFocus
-            placeholder="Código de producto"
-            className="caja-input"
-            value={codigo}
-            onChange={(e) => setCodigo(e.target.value)}
-            onKeyDown={manejarEnter}
-          />
-          <button className="caja-boton" onClick={buscarProducto}>
-            Agregar por código
-          </button>
-        </div>
-
-        <h3 className="caja-subtitulo">Productos disponibles</h3>
-        <div className="caja-productos">
-          {productos.map((producto) => (
-            <div className="producto-card" key={producto.identificación}>
-              <p><strong>{producto.nombre}</strong></p>
-              <p>${producto.precio.toLocaleString()}</p>
-              <button onClick={() => agregarAlCarrito(producto)}>Agregar</button>
+        <div className="caja-layout">
+          {/* COLUMNA IZQUIERDA: Productos */}
+          <div className="caja-productos-seccion">
+            <div className="caja-formulario">
+              <input
+                type="text"
+                autoFocus
+                placeholder="Código de producto o buscar..."
+                className="caja-input"
+                value={codigo}
+                onChange={(e) => setCodigo(e.target.value)}
+                onKeyDown={manejarEnter}
+              />
+              <button className="caja-boton" onClick={buscarProducto}>
+                🔍 Buscar
+              </button>
             </div>
-          ))}
-        </div>
 
-        <h3 className="caja-subtitulo">Carrito</h3>
-        <table className="caja-tabla">
-          <thead>
-            <tr>
-              <th>Producto</th>
-              <th>Cantidad</th>
-              <th>Precio</th>
-              <th>Total</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            {carrito.map(item => (
-              <tr key={item.identificación}>
-                <td>{item.nombre}</td>
-                <td>{item.cantidad}</td>
-                <td>${item.precio.toLocaleString()}</td>
-                <td>${(item.precio * item.cantidad).toLocaleString()}</td>
-                <td>
-                  <button
-                    className="caja-eliminar"
-                    onClick={() => eliminarProducto(item.identificación)}
-                  >
-                    🗑️
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            <h3 className="caja-subtitulo">Productos disponibles</h3>
+            <div className="caja-productos-grid">
+              {productos.map((producto) => (
+                <div 
+                  className="producto-card" 
+                  key={producto.id}
+                  onClick={() => agregarAlCarrito(producto)}
+                >
+                  <div className="producto-info">
+                    <p className="producto-nombre">{producto.nombre}</p>
+                    <p className="producto-precio">${producto.precio.toLocaleString()}</p>
+                    <p className="producto-stock">Stock: {producto.stockActual || 0}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-        <div className="caja-total">
-          <label>Método de pago:</label>
-          <select
-            value={metodoPago}
-            onChange={(e) => setMetodoPago(e.target.value)}
-            style={{ marginBottom: '10px' }}
-          >
-            <option value="efectivo">Efectivo</option>
-            <option value="tarjeta">Tarjeta</option>
-            <option value="nequi">Nequi</option>
-            <option value="daviplata">Daviplata</option>
-          </select>
-          <br />
-          <strong>Total: ${total.toLocaleString()}</strong>
-          <br />
-          <button onClick={guardarVenta} disabled={carrito.length === 0}>
-            Finalizar venta
-          </button>
+          {/* COLUMNA DERECHA: Carrito (Fijo) */}
+          <div className="caja-carrito-seccion">
+            <h3 className="caja-subtitulo">🛒 Carrito de compra</h3>
+            
+            <div className="carrito-items">
+              {carrito.length === 0 ? (
+                <p className="carrito-vacio">No hay productos en el carrito</p>
+              ) : (
+                <table className="caja-tabla">
+                  <thead>
+                    <tr>
+                      <th>Producto</th>
+                      <th>Cant.</th>
+                      <th>Precio</th>
+                      <th>Total</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {carrito.map(item => (
+                      <tr key={item.id}>
+                        <td className="producto-nombre-carrito">{item.nombre}</td>
+                        <td>
+                          <div className="cantidad-controles">
+                            <button 
+                              className="btn-cantidad"
+                              onClick={() => cambiarCantidad(item.id, item.cantidad - 1)}
+                            >
+                              -
+                            </button>
+                            <span className="cantidad-display">{item.cantidad}</span>
+                            <button 
+                              className="btn-cantidad"
+                              onClick={() => cambiarCantidad(item.id, item.cantidad + 1)}
+                            >
+                              +
+                            </button>
+                          </div>
+                        </td>
+                        <td>${item.precio.toLocaleString()}</td>
+                        <td className="total-item">${(item.precio * item.cantidad).toLocaleString()}</td>
+                        <td>
+                          <button
+                            className="caja-eliminar"
+                            onClick={() => eliminarProducto(item.id)}
+                            title="Eliminar producto"
+                          >
+                            🗑️
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            <div className="caja-total-seccion">
+              <div className="metodo-pago-grupo">
+                <label>Método de pago:</label>
+                <select
+                  value={metodoPago}
+                  onChange={(e) => setMetodoPago(e.target.value)}
+                  className="metodo-pago-select"
+                >
+                  <option value="efectivo">💵 Efectivo</option>
+                  <option value="tarjeta">💳 Tarjeta</option>
+                  <option value="nequi">📱 Nequi</option>
+                  <option value="daviplata">📱 Daviplata</option>
+                </select>
+              </div>
+
+              <div className="total-display">
+                <span>TOTAL:</span>
+                <span className="total-monto">${total.toLocaleString()}</span>
+              </div>
+
+              <button 
+                className="caja-finalizar" 
+                onClick={guardarVenta} 
+                disabled={carrito.length === 0}
+              >
+                💰 Finalizar venta
+              </button>
+
+              {mensaje && <p className="mensaje-exito">{mensaje}</p>}
+            </div>
+          </div>
         </div>
       </div>
     </LayoutBase>

@@ -1,22 +1,33 @@
-
-
-import express from "express";
 import dotenv from "dotenv";
+import express from "express";
+import cors from "cors";
+
 import facturaRoutes from "./routes/factura.routes.js";
 
+// ✅ Cargar variables de entorno
 dotenv.config();
+
+// ✅ Verificación opcional (puedes quitar esto después)
+console.log("FACTUS_BASE_URL:", process.env.FACTUS_BASE_URL);
+
 const app = express();
 
-// Middlewares
+// ✅ Middlewares
+app.use(cors({
+  origin: "http://localhost:5173", // Cambia al puerto de tu frontend
+  credentials: true,
+}));
 app.use(express.json());
+
+// ✅ Ruta principal de prueba
 app.get("/", (req, res) => {
-  res.send("🚀 API de Supermercado funcionando");
+  res.send("🚀 API de Supermercado funcionando correctamente");
 });
 
-// Rutas
+// ✅ Montar rutas de factura
 app.use("/api", facturaRoutes);
 
-// Puerto
+// ✅ Puerto
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`🚀 Backend corriendo en http://localhost:${PORT}`);

@@ -7,9 +7,9 @@ const router = Router();
 router.post("/facturas", emitirFactura);
 
 // Descargar PDF
-router.get("/facturas/:uuid/pdf", obtenerPdf);
+router.get("/facturas/:number/pdf", obtenerPdf);
 
 // Descargar XML
-router.get("/facturas/:uuid/xml", obtenerXml);
+router.get("/facturas/:number/xml", obtenerXml);
 
 export default router;

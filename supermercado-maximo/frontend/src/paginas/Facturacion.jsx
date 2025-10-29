@@ -1,79 +1,158 @@
-import { useState } from 'react';
-import LayoutBase from '../layouts/LayoutBase';
-import '../estilos/facturacion.css';
+import { useEffect, useState } from "react";
+import LayoutBase from "../layouts/LayoutBase";
+import { supabase } from "../supabase";
+import "../estilos/facturacion.css";
 
 function Facturacion() {
-  const [facturas, setFacturas] = useState([
-    {
-      id: 101,
-      venta_id: 1,
-      fecha: '2025-07-29',
-      cliente: 'Juan Pérez',
-      total: 58000,
-      enviado_a_dian: true,
-      fecha_envio: '2025-07-29 10:00'
-    },
-    {
-      id: 102,
-      venta_id: 2,
-      fecha: '2025-07-28',
-      cliente: 'Ana Gómez',
-      total: 41000,
-      enviado_a_dian: false,
-      fecha_envio: null
-    }
-  ]);
+  const [facturas, setFacturas] = useState([]);
+  const [cargando, setCargando] = useState(true);
 
-  const reenviarFactura = (id) => {
-    const confirmacion = window.confirm('¿Deseas reenviar esta factura a la DIAN?');
-    if (confirmacion) {
-      // Simula reenviar
-      setFacturas((prev) =>
-        prev.map((f) =>
-          f.id === id
-            ? { ...f, enviado_a_dian: true, fecha_envio: new Date().toISOString() }
-            : f
+  // 🔹 Cargar facturas desde Supabase al montar el componente
+  useEffect(() => {
+    const cargarFacturas = async () => {
+      const { data, error } = await supabase
+        .from("facturas")
+        .select(
+          "id, venta_id, uuid, numero_factura, estado, pdf_url, xml_url, creada_en"
         )
-      );
-    }
-  };
+        .order("id", { ascending: false });
+
+      if (error) {
+        console.error("Error cargando facturas:", error.message);
+        alert("❌ Error al cargar facturas");
+      } else {
+        setFacturas(data);
+      }
+
+      setCargando(false);
+    };
+
+    cargarFacturas();
+  }, []);
+
+  // 🔹 Descargar PDF
+const descargarPdf = async (numeroFactura) => {
+  if (!numeroFactura) {
+    alert("⚠️ No hay número de factura disponible.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`http://localhost:4000/api/facturas/${numeroFactura}/pdf`);
+
+    if (!res.ok) throw new Error("Error descargando PDF desde el backend");
+
+    // 📦 Convertir respuesta a binario
+    const blob = await res.blob();
+
+    // 🔗 Crear enlace temporal
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Factura_${numeroFactura}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    console.log("✅ PDF descargado correctamente");
+  } catch (err) {
+    console.error("❌ Error descargando PDF:", err);
+    alert("❌ Error al descargar PDF. Revisa la consola del backend.");
+  }
+};
+
+// 🔹 Descargar XML
+const descargarXml = async (numeroFactura) => {
+  if (!numeroFactura) {
+    alert("⚠️ No hay número de factura disponible.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`http://localhost:4000/api/facturas/${numeroFactura}/xml`);
+
+    if (!res.ok) throw new Error("Error descargando XML desde el backend");
+
+    // 📦 Convertir respuesta a binario
+    const blob = await res.blob();
+
+    // 🔗 Crear enlace temporal
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Factura_${numeroFactura}.xml`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    console.log("✅ XML descargado correctamente");
+  } catch (err) {
+    console.error("❌ Error descargando XML:", err);
+    alert("❌ Error al descargar XML. Revisa la consola del backend.");
+  }
+};
+
+  if (cargando) return <p>Cargando facturas...</p>;
 
   return (
     <LayoutBase>
-      <h1>Facturación Electrónica</h1>
+      <h1>📄 Facturación Electrónica</h1>
 
-      <table className="tabla-facturas">
-        <thead>
-          <tr>
-            <th>ID Factura</th>
-            <th>Venta</th>
-            <th>Cliente</th>
-            <th>Fecha</th>
-            <th>Total</th>
-            <th>Enviada a DIAN</th>
-            <th>Fecha Envío</th>
-            <th>Acción</th>
-          </tr>
-        </thead>
-        <tbody>
-          {facturas.map((factura) => (
-            <tr key={factura.id}>
-              <td>{factura.id}</td>
-              <td>{factura.venta_id}</td>
-              <td>{factura.cliente}</td>
-              <td>{factura.fecha}</td>
-              <td>${factura.total}</td>
-              <td>{factura.enviado_a_dian ? 'Sí' : 'No'}</td>
-              <td>{factura.fecha_envio || 'Pendiente'}</td>
-              <td>
-                {!factura.enviado_a_dian && (
-                  <button onClick={() => reenviarFactura(factura.id)}>Reintentar</button>
-                )}
-              </td>
+      {facturas.length === 0 ? (
+        <p>No hay facturas registradas.</p>
+      ) : (
+        <table className="tabla-facturas">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Venta</th>
+              <th>Número Factura</th>
+              <th>UUID</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {facturas.map((f) => (
+              <tr key={f.id}>
+                <td>{f.id}</td>
+                <td>{f.venta_id || "—"}</td>
+                <td>{f.numero_factura || "—"}</td>
+                <td>{f.uuid || "—"}</td>
+                <td>{f.estado || "Pendiente"}</td>
+                <td>
+                  {f.creada_en
+                    ? new Date(f.creada_en).toLocaleString()
+                    : "—"}
+                </td>
+                <td>
+                  {f.numero_factura ? (
+                    <>
+                      <button
+                        onClick={() => descargarPdf(f.numero_factura)}
+                        className="btn-descargar"
+                      >
+                        📄 PDF
+                      </button>
+                      <button
+                        onClick={() => descargarXml(f.numero_factura)}
+                        className="btn-descargar"
+                      >
+                        🧾 XML
+                      </button>
+                    </>
+                  ) : (
+                    <span>—</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </LayoutBase>
   );
 }

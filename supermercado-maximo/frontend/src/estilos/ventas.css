@@ -1,42 +1,395 @@
-.filtros {
-  margin: 1rem 0;
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
+/* Container principal */
+.ventas-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.filtros input,
-.filtros button {
-  padding: 0.5rem;
-  font-size: 1rem;
+.ventas-container h1 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+}
+
+/* Estadísticas rápidas */
+.stats-ventas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.stat-item {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+/* Sección de filtros */
+.filtros {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.filtros h2 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  color: #2c3e50;
+}
+
+.filtros-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.filtro-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.filtro-item label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+}
+
+.filtro-item input,
+.filtro-item select {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  transition: border 0.3s;
+}
+
+.filtro-item input:focus,
+.filtro-item select:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.filtros-acciones {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-aplicar {
+  background: #3498db;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.btn-aplicar:hover {
+  background: #2980b9;
+  transform: translateY(-2px);
+}
+
+.btn-limpiar {
+  background: #95a5a6;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.btn-limpiar:hover {
+  background: #7f8c8d;
+}
+
+/* Tabla de ventas */
+.tabla-section {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.tabla-wrapper {
+  overflow-x: auto;
 }
 
 .tabla-ventas {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 1rem;
+  font-size: 14px;
 }
 
-.tabla-ventas th,
-.tabla-ventas td {
-  border: 1px solid #ddd;
-  padding: 0.75rem;
-  text-align: center;
+.tabla-ventas thead {
+  background: #f8f9fa;
 }
 
 .tabla-ventas th {
-  background-color: #f2f2f2;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #2c3e50;
+  border-bottom: 2px solid #dee2e6;
 }
 
-button {
-  padding: 0.4rem 0.7rem;
-  background-color: #e74c3c;
+.tabla-ventas td {
+  padding: 12px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.tabla-ventas tbody tr {
+  transition: background 0.2s;
+}
+
+.tabla-ventas tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.tabla-ventas tbody tr.venta-anulada {
+  opacity: 0.6;
+  background: #fff3f3;
+}
+
+/* Badges de método de pago */
+.badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.badge-efectivo {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge-tarjeta {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.badge-nequi {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.badge-daviplata {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Estados */
+.estado-activa {
+  color: #27ae60;
+  font-weight: 500;
+}
+
+.estado-anulada {
+  color: #e74c3c;
+  font-weight: 500;
+}
+
+/* Columna de precio */
+.precio {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* Acciones */
+.acciones {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-ver {
+  background: #3498db;
   color: white;
   border: none;
+  padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s;
 }
 
-button:hover {
-  background-color: #c0392b;
+.btn-ver:hover {
+  background: #2980b9;
+}
+
+.btn-anular {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s;
+}
+
+.btn-anular:hover {
+  background: #c0392b;
+}
+
+/* Estados de carga */
+.cargando,
+.sin-datos {
+  text-align: center;
+  padding: 40px;
+  color: #7f8c8d;
+  font-size: 16px;
+}
+
+/* Modal de detalles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-content h2 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+}
+
+.modal-content h3 {
+  margin: 20px 0 10px 0;
+  color: #2c3e50;
+  font-size: 18px;
+}
+
+.detalle-info {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.detalle-info p {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+/* Tabla de detalles */
+.tabla-detalle {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.tabla-detalle thead {
+  background: #f8f9fa;
+}
+
+.tabla-detalle th,
+.tabla-detalle td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.tabla-detalle tfoot {
+  background: #f8f9fa;
+  font-weight: bold;
+}
+
+.btn-cerrar {
+  width: 100%;
+  background: #6c757d;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.btn-cerrar:hover {
+  background: #545b62;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .stats-ventas {
+    grid-template-columns: 1fr;
+  }
+
+  .filtros-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tabla-ventas {
+    font-size: 12px;
+  }
+
+  .tabla-ventas th,
+  .tabla-ventas td {
+    padding: 8px;
+  }
+
+  .acciones {
+    flex-direction: column;
+  }
 }

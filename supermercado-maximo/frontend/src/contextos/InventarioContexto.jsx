@@ -1,47 +1,68 @@
 import { createContext, useEffect, useState } from 'react';
+import { supabase } from '../supabase'; // 👈 asegúrate de que la ruta sea correcta
 
 export const InventarioContexto = createContext();
 
 export const InventarioProvider = ({ children }) => {
   const [productos, setProductos] = useState([]);
+  const [cargando, setCargando] = useState(true);
 
-  // Cargar desde localStorage al inicio
+  // 🔹 Cargar productos desde Supabase al inicio
   useEffect(() => {
-    const datosGuardados = localStorage.getItem('inventario');
-    if (datosGuardados) {
-      setProductos(JSON.parse(datosGuardados));
-    }
+    const cargarProductos = async () => {
+      const { data, error } = await supabase.from('productos').select('*');
+      if (error) {
+        console.error('Error al cargar productos desde Supabase:', error.message);
+      } else {
+        setProductos(data);
+      }
+      setCargando(false);
+    };
+
+    cargarProductos();
+
+    // 🔹 Suscribirse a cambios en tiempo real en la tabla 'productos'
+    const canal = supabase
+      .channel('realtime:productos')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'productos' },
+        (payload) => {
+          console.log('Cambio detectado en productos:', payload);
+          cargarProductos();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(canal);
+    };
   }, []);
 
-  // Guardar automáticamente en localStorage cuando cambia el estado
-  useEffect(() => {
-    localStorage.setItem('inventario', JSON.stringify(productos));
-  }, [productos]);
-
-  const agregarProducto = (producto) => {
-    const nuevoProducto = {
-      ...producto,
-      id: Date.now(), // ID único usando timestamp
-    };
-    setProductos([...productos, nuevoProducto]);
+  // 🔹 Funciones CRUD (opcional, puedes usarlas luego si quieres manejar cambios desde React)
+  const agregarProducto = async (producto) => {
+    const { error } = await supabase.from('productos').insert([producto]);
+    if (error) console.error('Error agregando producto:', error.message);
   };
 
-  const editarProducto = (id, datosActualizados) => {
-    const productosActualizados = productos.map((p) =>
-      p.id === id ? { ...p, ...datosActualizados } : p
-    );
-    setProductos(productosActualizados);
+  const editarProducto = async (id, datosActualizados) => {
+    const { error } = await supabase
+      .from('productos')
+      .update(datosActualizados)
+      .eq('id', id);
+    if (error) console.error('Error actualizando producto:', error.message);
   };
 
-  const eliminarProducto = (id) => {
-    const filtrados = productos.filter((p) => p.id !== id);
-    setProductos(filtrados);
+  const eliminarProducto = async (id) => {
+    const { error } = await supabase.from('productos').delete().eq('id', id);
+    if (error) console.error('Error eliminando producto:', error.message);
   };
 
   return (
     <InventarioContexto.Provider
       value={{
         productos,
+        cargando,
         agregarProducto,
         editarProducto,
         eliminarProducto,
@@ -51,3 +72,4 @@ export const InventarioProvider = ({ children }) => {
     </InventarioContexto.Provider>
   );
 };
+
