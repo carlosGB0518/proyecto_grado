@@ -18,35 +18,59 @@ const Registro = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const manejarRegistro = async (e) => {
-    e.preventDefault();
-    setError('');
+const manejarRegistro = async (e) => {
+  e.preventDefault();
+  setError('');
 
-    const { nombre, correo, password, confirmar } = formData;
+  const { nombre, correo, password, confirmar } = formData;
 
-    if (password !== confirmar) {
-      setError('Las contraseñas no coinciden.');
-      return;
-    }
+  if (password !== confirmar) {
+    setError('Las contraseñas no coinciden.');
+    return;
+  }
 
-    const { data, error: registroError } = await supabase.auth.signUp({
-      email: correo,
-      password,
-      options: {
-        data: {
-          nombre_completo: nombre
-        }
+  // ✅ Crear usuario en Supabase Auth
+  const { data, error: registroError } = await supabase.auth.signUp({
+    email: correo,
+    password,
+    options: {
+      data: {
+        nombre_completo: nombre
       }
-    });
+    }
+  });
 
-    if (registroError) {
-      setError('Error al registrar: ' + registroError.message);
+  if (registroError) {
+    setError('Error al registrar: ' + registroError.message);
+    return;
+  }
+
+  // ✅ Insertar en tabla personalizada "usuarios"
+  const userId = data?.user?.id;
+
+  if (userId) {
+    const { error: insertError } = await supabase
+      .from('usuarios')
+      .insert([
+        {
+          id: userId, // debe coincidir con el campo 'id' en tu tabla
+          nombre,
+          correo,
+          rol: 'cajero' // puedes ajustar esto según tu lógica
+        }
+      ]);
+
+    if (insertError) {
+      console.error('Error al insertar en usuarios:', insertError.message);
+      setError('Usuario creado pero no se guardó en la base de datos.');
       return;
     }
+  }
 
-    // Registro exitoso, redirige al login
-    navigate('/login');
-  };
+  // ✅ Redirigir al login
+  navigate('/login');
+};
+
 
   return (
     <div className="registro-container">
