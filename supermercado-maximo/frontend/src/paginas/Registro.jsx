@@ -50,16 +50,15 @@ const manejarRegistro = async (e) => {
 
   if (userId) {
     const { error: insertError } = await supabase
-  .from('usuarios')
-  .upsert([
-    {
-      id: user.id,
-      correo: user.email,
-      nombre: user.user_metadata?.nombre_completo || '',
-      rol: 'cliente'
-    }
-  ]);
-
+      .from('usuarios')
+      .insert([
+        {
+          id: userId, // debe coincidir con el campo 'id' en tu tabla
+          nombre,
+          correo,
+          rol: 'cajero' // puedes ajustar esto según tu lógica
+        }
+      ]);
 
     if (insertError) {
       console.error('Error al insertar en usuarios:', insertError.message);

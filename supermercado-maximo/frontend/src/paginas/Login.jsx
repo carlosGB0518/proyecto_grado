@@ -54,7 +54,7 @@ const Login = () => {
     // ✅ Insertar si no existe
     const { error: insercionError } = await supabase
       .from('usuarios')
-      .insert([
+      .upsert([
         {
           id: user.id,
           correo: user.email,
