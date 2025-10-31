@@ -16,25 +16,64 @@ const Login = () => {
   };
 
   const manejarLogin = async (e) => {
-    e.preventDefault();
-    setError('');
+  e.preventDefault();
+  setError('');
 
-    const { correo, password } = formData;
+  const { correo, password } = formData;
 
-    const { data, error: loginError } = await supabase.auth.signInWithPassword({
-      email: correo,
-      password: password
-    });
+  const { data, error: loginError } = await supabase.auth.signInWithPassword({
+    email: correo,
+    password
+  });
 
-    if (loginError) {
-      setError('Credenciales inválidas o usuario no registrado.');
-      return;
+  if (loginError) {
+    setError('Credenciales inválidas o usuario no registrado.');
+    return;
+  }
+
+  const user = data?.user;
+
+  if (!user) {
+    setError('No se pudo obtener el usuario.');
+    return;
+  }
+
+  // ✅ Verificar si el usuario ya existe en la tabla personalizada
+  const { data: usuarioExistente, error: consultaError } = await supabase
+    .from('usuarios')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  if (consultaError && consultaError.code !== 'PGRST116') {
+    // PGRST116 = no encontrado, lo manejamos abajo
+    console.error('Error al consultar la tabla usuarios:', consultaError.message);
+  }
+
+  if (!usuarioExistente) {
+    // ✅ Insertar si no existe
+    const { error: insercionError } = await supabase
+      .from('usuarios')
+      .insert([
+        {
+          id: user.id,
+          correo: user.email,
+          nombre: user.user_metadata?.nombre_completo || '',
+          rol: 'cliente'
+        }
+      ]);
+
+    if (insercionError) {
+      console.error('Error al insertar usuario:', insercionError.message);
+      setError('Inicio de sesión exitoso, pero no se guardó en la base de datos.');
     }
+  }
 
-    // Puedes traer más datos del usuario si los tienes en una tabla aparte
-    login({ nombre: data.user.email, rol: 'usuario' });
-    navigate('/');
-  };
+  // ✅ Guardar en contexto y redirigir
+  login({ nombre: user.email, rol: 'cliente' });
+  navigate('/');
+};
+
 
   return (
     <div className="login-container">
