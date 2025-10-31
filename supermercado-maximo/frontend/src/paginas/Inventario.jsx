@@ -45,13 +45,17 @@ const Inventario = () => {
   }, []);
 
   const cargarProductos = async () => {
-    const { data, error } = await supabase.from('productos').select('*');
-    if (error) {
-      alert('Error al cargar productos: ' + error.message);
-    } else {
-      setProductos(data);
-    }
-  };
+  const { data, error } = await supabase
+    .from('productos')
+    .select('*')
+    .eq('activo', true); // ✅ solo productos activos
+
+  if (error) {
+    alert('Error al cargar productos: ' + error.message);
+  } else {
+    setProductos(data);
+  }
+};
 
   const manejarCambio = (e) => {
     setNuevoProducto({ ...nuevoProducto, [e.target.name]: e.target.value });
@@ -124,15 +128,19 @@ const Inventario = () => {
   };
 
   const eliminarProducto = async (id) => {
-    if (!window.confirm('¿Eliminar producto?')) return;
+  if (!window.confirm('¿Eliminar producto del inventario? Esta acción no afectará las ventas pasadas.')) return;
 
-    const { error } = await supabase.from('productos').delete().eq('id', id);
-    if (error) {
-      alert('Error al eliminar: ' + error.message);
-    } else {
-      await cargarProductos();
-    }
-  };
+  const { error } = await supabase
+    .from('productos')
+    .update({ activo: false }) // ✅ eliminación lógica
+    .eq('id', id);
+
+  if (error) {
+    alert('Error al marcar como eliminado: ' + error.message);
+  } else {
+    await cargarProductos();
+  }
+};
 
   const registrarEntrada = async () => {
     const producto = productos.find((p) => p.codigo === codigoMovimiento);
