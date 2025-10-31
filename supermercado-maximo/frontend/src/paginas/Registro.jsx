@@ -51,7 +51,7 @@ const manejarRegistro = async (e) => {
   if (userId) {
     const { error: insertError } = await supabase
       .from('usuarios')
-      .insert([
+      .upsert([
         {
           id: userId, // debe coincidir con el campo 'id' en tu tabla
           nombre,
