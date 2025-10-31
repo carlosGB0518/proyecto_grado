@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../supabase';
 import LayoutBase from '../layouts/LayoutBase';
 import '../estilos/inventario.css';
@@ -16,7 +16,9 @@ const Inventario = () => {
   const [codigoMovimiento, setCodigoMovimiento] = useState('');
   const [cantidadMovimiento, setCantidadMovimiento] = useState('');
 
-  // Cargar productos y escuchar cambios en tiempo real
+  const inputCodigoRef = useRef(null);
+  const inputMovimientoRef = useRef(null);
+
   useEffect(() => {
     cargarProductos();
 
@@ -27,10 +29,15 @@ const Inventario = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'productos' },
         () => {
-          cargarProductos(); // Refresca la lista cuando hay cambios
+          cargarProductos();
         }
       )
       .subscribe();
+
+    // ✅ Enfocar campo de código para escaneo
+    if (inputCodigoRef.current) {
+      inputCodigoRef.current.focus();
+    }
 
     return () => {
       supabase.removeChannel(canal);
@@ -79,6 +86,7 @@ const Inventario = () => {
         stockActual: '',
         stockMinimo: '',
       });
+      if (inputCodigoRef.current) inputCodigoRef.current.focus();
     }
   };
 
@@ -111,6 +119,7 @@ const Inventario = () => {
         stockActual: '',
         stockMinimo: '',
       });
+      if (inputCodigoRef.current) inputCodigoRef.current.focus();
     }
   };
 
@@ -137,6 +146,7 @@ const Inventario = () => {
         await cargarProductos();
         setCodigoMovimiento('');
         setCantidadMovimiento('');
+        if (inputMovimientoRef.current) inputMovimientoRef.current.focus();
       }
     }
   };
@@ -159,6 +169,7 @@ const Inventario = () => {
         await cargarProductos();
         setCodigoMovimiento('');
         setCantidadMovimiento('');
+        if (inputMovimientoRef.current) inputMovimientoRef.current.focus();
       }
     }
   };
@@ -169,7 +180,16 @@ const Inventario = () => {
         <h2>Inventario</h2>
 
         <form onSubmit={modoEdicion ? guardarEdicion : manejarAgregar} className="inventario-form">
-          <input type="text" name="codigo" placeholder="Código" value={nuevoProducto.codigo} onChange={manejarCambio} required disabled={modoEdicion !== null} />
+          <input
+            ref={inputCodigoRef}
+            type="text"
+            name="codigo"
+            placeholder="Código"
+            value={nuevoProducto.codigo}
+            onChange={manejarCambio}
+            required
+            disabled={modoEdicion !== null}
+          />
           <input type="text" name="nombre" placeholder="Nombre" value={nuevoProducto.nombre} onChange={manejarCambio} required />
           <input type="number" name="precio" placeholder="Precio" value={nuevoProducto.precio} onChange={manejarCambio} required />
           <input type="number" name="stockActual" placeholder="Stock actual" value={nuevoProducto.stockActual} onChange={manejarCambio} required />
@@ -179,8 +199,22 @@ const Inventario = () => {
 
         <div className="movimientos-stock">
           <h3>Registrar movimiento de stock</h3>
-          <input type="text" placeholder="Código" value={codigoMovimiento} onChange={(e) => setCodigoMovimiento(e.target.value)} />
-          <input type="number" placeholder="Cantidad" value={cantidadMovimiento} onChange={(e) => setCantidadMovimiento(e.target.value)} />
+          <input
+            ref={inputMovimientoRef}
+            type="text"
+            placeholder="Código"
+            value={codigoMovimiento}
+            onChange={(e) => setCodigoMovimiento(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') registrarEntrada();
+            }}
+          />
+          <input
+            type="number"
+            placeholder="Cantidad"
+            value={cantidadMovimiento}
+            onChange={(e) => setCantidadMovimiento(e.target.value)}
+          />
           <button onClick={registrarEntrada}>Entrada</button>
           <button onClick={registrarSalida}>Salida</button>
         </div>
