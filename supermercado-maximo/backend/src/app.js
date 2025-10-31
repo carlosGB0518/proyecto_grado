@@ -14,7 +14,7 @@ const app = express();
 
 // ✅ Middlewares
 app.use(cors({
-  origin: "http://localhost:5173", // Cambia al puerto de tu frontend
+  origin: "https://proyecto-grado-teal.vercel.app", // Cambia al puerto de tu frontend
   credentials: true,
 }));
 app.use(express.json());

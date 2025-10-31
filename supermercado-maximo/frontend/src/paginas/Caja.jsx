@@ -1,6 +1,7 @@
 import { useContext, useState } from 'react';
 import { InventarioContexto } from '../contextos/InventarioContexto';
 import LayoutBase from '../layouts/LayoutBase';
+import api from '../services/api';
 import { supabase } from '../supabase';
 import '../estilos/caja.css';
 
@@ -158,7 +159,7 @@ const Caja = () => {
         venta_id: ventaInsertada.id
       };
 
-      const facturaResponse = await fetch('http://localhost:4000/api/facturas', {
+      const facturaResponse = await fetch('${api}/api/facturas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(facturaPayload),

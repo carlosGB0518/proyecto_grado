@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import LayoutBase from "../layouts/LayoutBase";
+import api from '../services/api';
 import { supabase } from "../supabase";
 import "../estilos/facturacion.css";
 
@@ -38,7 +39,7 @@ const descargarPdf = async (numeroFactura) => {
   }
 
   try {
-    const res = await fetch(`http://localhost:4000/api/facturas/${numeroFactura}/pdf`);
+    const res = await fetch(`${api}/api/facturas/${numeroFactura}/pdf`);
 
     if (!res.ok) throw new Error("Error descargando PDF desde el backend");
 
@@ -70,7 +71,7 @@ const descargarXml = async (numeroFactura) => {
   }
 
   try {
-    const res = await fetch(`http://localhost:4000/api/facturas/${numeroFactura}/xml`);
+    const res = await fetch(`${api}/api/facturas/${numeroFactura}/xml`);
 
     if (!res.ok) throw new Error("Error descargando XML desde el backend");
 
