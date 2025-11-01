@@ -11,7 +11,22 @@ const Caja = () => {
   const [carrito, setCarrito] = useState([]);
   const [metodoPago, setMetodoPago] = useState('efectivo');
   const [mensaje, setMensaje] = useState('');
+  useEffect(() => {
+  const cargarProductos = async () => {
+    const { data, error } = await supabase
+      .from('productos')
+      .select('*')
+      .eq('activo', true); // ✅ solo productos activos
 
+    if (error) {
+      alert('Error al cargar productos: ' + error.message);
+    } else {
+      setProductos(data);
+    }
+  };
+
+  cargarProductos();
+}, []);
   // 🛒 Agregar producto al carrito
   const agregarAlCarrito = (producto) => {
 
@@ -45,22 +60,7 @@ const Caja = () => {
       setCarrito([...carrito, { ...producto, cantidad: 1 }]);
     }
   };
-  useEffect(() => {
-  const cargarProductos = async () => {
-    const { data, error } = await supabase
-      .from('productos')
-      .select('*')
-      .eq('activo', true); // ✅ solo productos activos
 
-    if (error) {
-      alert('Error al cargar productos: ' + error.message);
-    } else {
-      setProductos(data);
-    }
-  };
-
-  cargarProductos();
-}, []);
 
 
           // 🔍 Buscar producto por código
