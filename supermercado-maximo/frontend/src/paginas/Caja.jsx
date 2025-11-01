@@ -159,13 +159,22 @@ const Caja = () => {
         venta_id: ventaInsertada.id
       };
 
-      const facturaResponse = await fetch('${api}/api/facturas', {
+      const facturaResponse = await fetch(`${api}/api/facturas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(facturaPayload),
       });
 
-      const facturaData = await facturaResponse.json();
+        const text = await facturaResponse.text();
+        let facturaData = null;
+
+        try {
+          facturaData = text ? JSON.parse(text) : null;
+        } catch (err) {
+          console.error('❌ Error interpretando JSON de factura:', err.message);
+          throw new Error('Respuesta inválida del servidor de facturación');
+        }
+
 
       if (!facturaResponse.ok) {
         throw new Error(facturaData.error || 'Error al emitir factura');
