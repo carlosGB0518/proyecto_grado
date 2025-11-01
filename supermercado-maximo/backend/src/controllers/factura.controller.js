@@ -31,7 +31,7 @@ export async function emitirFactura(req, res) {
     // 📊 Extraer los datos principales
     const facturaData = {
       venta_id: req.body.venta_id || null,
-      uuid: data?.data?.bill?.uuid || null,
+      uuid: data?.bill?.uuid || null,
       numero_factura: data?.data?.bill?.number || null,
       estado: data?.status || "emitida",
       cufe: data?.data?.bill?.cufe || null,
