@@ -270,20 +270,7 @@ function Ventas() {
               />
             </div>
 
-            <div className="filtro-item">
-              <label>Cliente:</label>
-              <select
-                value={filtros.clienteId}
-                onChange={(e) => setFiltros({ ...filtros, clienteId: e.target.value })}
-              >
-                <option value="">Todos los clientes</option>
-                {clientes.map(cliente => (
-                  <option key={cliente.id} value={cliente.id}>
-                    {cliente.nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
+            
 
             <div className="filtro-item">
               <label>Método de pago:</label>
