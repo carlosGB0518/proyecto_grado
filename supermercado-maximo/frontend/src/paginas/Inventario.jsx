@@ -61,38 +61,82 @@ const Inventario = () => {
     setNuevoProducto({ ...nuevoProducto, [e.target.name]: e.target.value });
   };
 
-  const manejarAgregar = async (e) => {
-    e.preventDefault();
-    const { codigo, nombre, precio, stockActual, stockMinimo } = nuevoProducto;
+const manejarAgregar = async (e) => {
+  e.preventDefault();
+  const { codigo, nombre, precio, stockActual, stockMinimo } = nuevoProducto;
 
-    if (!codigo || !nombre || !precio || stockActual === '' || stockMinimo === '') return;
+  if (!codigo || !nombre || !precio || stockActual === '' || stockMinimo === '') return;
 
-    const { error } = await supabase
-      .from('productos')
-      .insert([
-        {
-          codigo,
+  // ✅ Verificar si ya existe un producto con ese código
+  const { data: productoExistente } = await supabase
+    .from('productos')
+    .select('*')
+    .eq('codigo', codigo)
+    .single();
+
+  if (productoExistente) {
+    // ✅ Si existe y está inactivo, lo reactivamos
+    if (!productoExistente.activo) {
+      const { error: reactivarError } = await supabase
+        .from('productos')
+        .update({
           nombre,
           precio: parseInt(precio),
           stockActual: parseInt(stockActual),
           stockMinimo: parseInt(stockMinimo),
-        },
-      ]);
+          activo: true
+        })
+        .eq('id', productoExistente.id);
 
-    if (error) {
-      alert('Error al agregar producto: ' + error.message);
-    } else {
-      await cargarProductos();
-      setNuevoProducto({
-        codigo: '',
-        nombre: '',
-        precio: '',
-        stockActual: '',
-        stockMinimo: '',
-      });
-      if (inputCodigoRef.current) inputCodigoRef.current.focus();
+      if (reactivarError) {
+        alert('Error al reactivar producto: ' + reactivarError.message);
+      } else {
+        await cargarProductos();
+        setNuevoProducto({
+          codigo: '',
+          nombre: '',
+          precio: '',
+          stockActual: '',
+          stockMinimo: '',
+        });
+        if (inputCodigoRef.current) inputCodigoRef.current.focus();
+      }
+      return;
     }
-  };
+
+    // ⚠️ Si ya existe y está activo, no se puede duplicar
+    alert('Ya existe un producto con ese código.');
+    return;
+  }
+
+  // ✅ Si no existe, lo insertamos normalmente
+  const { error } = await supabase
+    .from('productos')
+    .insert([
+      {
+        codigo,
+        nombre,
+        precio: parseInt(precio),
+        stockActual: parseInt(stockActual),
+        stockMinimo: parseInt(stockMinimo),
+        activo: true
+      },
+    ]);
+
+  if (error) {
+    alert('Error al agregar producto: ' + error.message);
+  } else {
+    await cargarProductos();
+    setNuevoProducto({
+      codigo: '',
+      nombre: '',
+      precio: '',
+      stockActual: '',
+      stockMinimo: '',
+    });
+    if (inputCodigoRef.current) inputCodigoRef.current.focus();
+  }
+};
 
   const manejarEditar = (producto) => {
     setModoEdicion(producto.id);
