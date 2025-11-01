@@ -14,6 +14,12 @@ const Caja = () => {
 
   // 🛒 Agregar producto al carrito
   const agregarAlCarrito = (producto) => {
+
+    if (!producto.activo) {
+      alert(`❌ El producto "${producto.nombre}" ha sido eliminado del inventario y no puede venderse.`);
+      return;
+    }
+
     // Validar que haya stock disponible
     if (!producto.stockActual || producto.stockActual <= 0) {
       alert(`❌ ${producto.nombre} no tiene stock disponible`);
@@ -40,16 +46,21 @@ const Caja = () => {
     }
   };
 
-  // 🔍 Buscar producto por código
-  const buscarProducto = () => {
-    const productoEncontrado = productos.find(p => p.codigo === codigo.trim());
-    if (productoEncontrado) {
-      agregarAlCarrito(productoEncontrado);
-    } else {
-      alert('⚠️ Producto no encontrado');
-    }
-    setCodigo('');
-  };
+          // 🔍 Buscar producto por código
+          const buscarProducto = () => {
+            const productoEncontrado = productos.find(p => p.codigo === codigo.trim());
+
+            if (!productoEncontrado) {
+              alert('⚠️ Producto no encontrado');
+            } else if (!productoEncontrado.activo) {
+              alert(`❌ El producto "${productoEncontrado.nombre}" ha sido eliminado del inventario y no puede venderse.`);
+            } else {
+              agregarAlCarrito(productoEncontrado);
+            }
+
+            setCodigo('');
+
+            };
 
   const manejarEnter = (e) => {
     if (e.key === 'Enter') {
