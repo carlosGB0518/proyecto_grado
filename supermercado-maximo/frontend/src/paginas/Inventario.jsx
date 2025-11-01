@@ -142,45 +142,51 @@ const Inventario = () => {
   }
 };
 
-  const registrarEntrada = async () => {
-    const producto = productos.find((p) => p.codigo === codigoMovimiento);
-    if (producto) {
-      const nuevoStock = producto.stockActual + parseInt(cantidadMovimiento);
-      const { error } = await supabase
-        .from('productos')
-        .update({ stockActual: nuevoStock })
-        .eq('id', producto.id);
-      if (!error) {
-        await cargarProductos();
-        setCodigoMovimiento('');
-        setCantidadMovimiento('');
-        if (inputMovimientoRef.current) inputMovimientoRef.current.focus();
-      }
-    }
-  };
+const registrarEntrada = async () => {
+  if (!codigoMovimiento || !cantidadMovimiento) {
+    alert('Debes ingresar el código y la cantidad.');
+    return;
+  }
 
-  const registrarSalida = async () => {
-    const producto = productos.find((p) => p.codigo === codigoMovimiento);
-    if (producto) {
-      const cantidadSalida = parseInt(cantidadMovimiento);
-      if (cantidadSalida > producto.stockActual) {
-        alert('Stock insuficiente');
-        return;
-      }
-
-      const nuevoStock = producto.stockActual - cantidadSalida;
-      const { error } = await supabase
-        .from('productos')
-        .update({ stockActual: nuevoStock })
-        .eq('id', producto.id);
-      if (!error) {
-        await cargarProductos();
-        setCodigoMovimiento('');
-        setCantidadMovimiento('');
-        if (inputMovimientoRef.current) inputMovimientoRef.current.focus();
-      }
+  const producto = productos.find((p) => p.codigo === codigoMovimiento);
+  if (producto) {
+    const nuevoStock = producto.stockActual + parseInt(cantidadMovimiento);
+    const { error } = await supabase
+      .from('productos')
+      .update({ stockActual: nuevoStock })
+      .eq('id', producto.id);
+    if (!error) {
+      await cargarProductos();
+      setCodigoMovimiento('');
+      setCantidadMovimiento('');
+      if (inputMovimientoRef.current) inputMovimientoRef.current.focus();
     }
-  };
+  }
+};
+
+
+const registrarSalida = async () => {
+  if (!codigoMovimiento || !cantidadMovimiento) {
+    alert('Debes ingresar el código y la cantidad.');
+    return;
+  }
+
+  const producto = productos.find((p) => p.codigo === codigoMovimiento);
+  if (producto) {
+    const nuevoStock = producto.stockActual + parseInt(cantidadMovimiento);
+    const { error } = await supabase
+      .from('productos')
+      .update({ stockActual: nuevoStock })
+      .eq('id', producto.id);
+    if (!error) {
+      await cargarProductos();
+      setCodigoMovimiento('');
+      setCantidadMovimiento('');
+      if (inputMovimientoRef.current) inputMovimientoRef.current.focus();
+    }
+  }
+};
+
 
   return (
     <LayoutBase>
@@ -209,15 +215,12 @@ const Inventario = () => {
         <div className="movimientos-stock">
           <h3>Registrar movimiento de stock</h3>
           <input
-            ref={inputMovimientoRef}
-            type="text"
-            placeholder="Código"
-            value={codigoMovimiento}
-            onChange={(e) => setCodigoMovimiento(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') registrarEntrada();
-            }}
-          />
+              ref={inputMovimientoRef}
+              type="text"
+              placeholder="Código"
+              value={codigoMovimiento}
+              onChange={(e) => setCodigoMovimiento(e.target.value)}
+            />
           <input
             type="number"
             placeholder="Cantidad"
