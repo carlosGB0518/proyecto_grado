@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { InventarioContexto } from '../contextos/InventarioContexto';
 import LayoutBase from '../layouts/LayoutBase';
 import api from '../services/api';
@@ -45,6 +45,23 @@ const Caja = () => {
       setCarrito([...carrito, { ...producto, cantidad: 1 }]);
     }
   };
+  useEffect(() => {
+  const cargarProductos = async () => {
+    const { data, error } = await supabase
+      .from('productos')
+      .select('*')
+      .eq('activo', true); // ✅ solo productos activos
+
+    if (error) {
+      alert('Error al cargar productos: ' + error.message);
+    } else {
+      setProductos(data);
+    }
+  };
+
+  cargarProductos();
+}, []);
+
 
           // 🔍 Buscar producto por código
           const buscarProducto = () => {
