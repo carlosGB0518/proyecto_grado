@@ -12,6 +12,7 @@ function MenuLateral() {
           <li><Link to="/clientes">Clientes</Link></li>
           <li><Link to="/ventas">ventas</Link></li>
           <li><Link to="/facturacion">Facturación</Link></li>
+          <li><Link to="/proveedores">Proveedores</Link></li>
           
         </ul>
       </nav>
