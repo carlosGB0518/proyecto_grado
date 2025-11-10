@@ -217,7 +217,7 @@ const Caja = () => {
 
     } catch (error) {
       console.error('❌ Error al procesar venta:', error);
-      alert(`❌ Error al procesar venta: ${error.message}`);
+      alert(`❌ Error al procesar venta: ${error.message || JSON.stringify(error)}`);
     }
   };
 
