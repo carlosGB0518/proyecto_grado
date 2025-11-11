@@ -12,6 +12,9 @@ const Inventario = () => {
     stockActual: '',
     stockMinimo: '',
   });
+  const [proveedores, setProveedores] = useState([]);
+  const [proveedorId, setProveedorId] = useState('');
+
   const [modoEdicion, setModoEdicion] = useState(null);
   const [codigoMovimiento, setCodigoMovimiento] = useState('');
   const [cantidadMovimiento, setCantidadMovimiento] = useState('');
@@ -42,12 +45,21 @@ const Inventario = () => {
     return () => {
       supabase.removeChannel(canal);
     };
+
+    const cargarProveedores = async () => {
+    const { data, error } = await supabase.from('proveedores').select('id, nombre');
+      if (!error) setProveedores(data);
+        };
+
+      cargarProveedores();
+
   }, []);
 
   const cargarProductos = async () => {
   const { data, error } = await supabase
     .from('productos')
-    .select('*')
+    .select('id, codigo, nombre, precio, stockActual, stockMinimo, proveedor:proveedor_id(nombre)')
+
     .eq('activo', true); // ✅ solo productos activos
 
   if (error) {
@@ -119,9 +131,12 @@ const manejarAgregar = async (e) => {
         precio: parseInt(precio),
         stockActual: parseInt(stockActual),
         stockMinimo: parseInt(stockMinimo),
+        proveedor_id: proveedorId || null,
         activo: true
       },
     ]);
+    setProveedorId('');
+
 
   if (error) {
     alert('Error al agregar producto: ' + error.message);
@@ -141,6 +156,8 @@ const manejarAgregar = async (e) => {
   const manejarEditar = (producto) => {
     setModoEdicion(producto.id);
     setNuevoProducto(producto);
+    setProveedorId(producto.proveedor_id || '');
+
   };
 
   const guardarEdicion = async (e) => {
@@ -151,6 +168,7 @@ const manejarAgregar = async (e) => {
         nombre: nuevoProducto.nombre,
         precio: parseInt(nuevoProducto.precio),
         stockActual: parseInt(nuevoProducto.stockActual),
+        proveedor_id: proveedorId || null,
         stockMinimo: parseInt(nuevoProducto.stockMinimo),
       })
       .eq('id', modoEdicion);
@@ -253,6 +271,14 @@ const registrarSalida = async () => {
             required
             disabled={modoEdicion !== null}
           />
+          <label>Proveedor:</label>
+          <select value={proveedorId} onChange={(e) => setProveedorId(e.target.value)}>
+            <option value="">Selecciona un proveedor</option>
+            {proveedores.map((p) => (
+              <option key={p.id} value={p.id}>{p.nombre}</option>
+            ))}
+          </select>
+
           <button type="submit">{modoEdicion ? 'Guardar cambios' : 'Agregar producto'}</button>
         </form>
 
@@ -284,6 +310,8 @@ const registrarSalida = async () => {
               <th>Stock</th>
               <th>Mínimo</th>
               <th>Acciones</th>
+              <th>Proveedor</th>
+
             </tr>
           </thead>
           <tbody>
@@ -294,6 +322,8 @@ const registrarSalida = async () => {
                 <td>${p.precio.toLocaleString()}</td>
                 <td>{p.stockActual}</td>
                 <td>{p.stockMinimo}</td>
+                <td>{p.proveedor?.nombre || 'Sin proveedor'}</td>
+
                 <td>
                   <button onClick={() => manejarEditar(p)}>✏️</button>
                   <button onClick={() => eliminarProducto(p.id)}>🗑️</button>
