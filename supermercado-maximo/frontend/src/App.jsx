@@ -8,6 +8,7 @@ import Inicio from './paginas/Inicio';
 import Caja from './paginas/Caja';
 import Inventario from './paginas/Inventario';
 import Facturacion from './paginas/Facturacion';
+import Proveedores from './paginas/Proveedores';
 
 import Ventas from './paginas/Ventas'; // o la ruta correspondiente
 import Clientes from './paginas/Clientes'; // 👈 Nueva importación
@@ -23,6 +24,7 @@ function App() {
       <Route path="/ventas" element={<Ventas />} />
       <Route path="/clientes" element={<RutaPrivada><Clientes /></RutaPrivada>} /> 
       <Route path="/facturacion" element={<RutaPrivada><Facturacion /></RutaPrivada>} />
+      <Route path="/proveedores" element={<RutaPrivada><Proveedores /></RutaPrivada>} />
     </Routes>
   );
 }
