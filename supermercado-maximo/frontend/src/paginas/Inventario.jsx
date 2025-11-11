@@ -187,37 +187,6 @@ const confirmarPedido = async () => {
     setFechaPedido('');
   }
 };
-{mostrarModalPedido && (
-  <div className="modal-pedido">
-    <div className="modal-contenido">
-      <h3>Registrar pedido</h3>
-      <p><strong>Producto:</strong> {productoSeleccionado.nombre}</p>
-      <p><strong>Proveedor:</strong> {productoSeleccionado.proveedor?.nombre || 'Sin proveedor'}</p>
-
-      <label>Cantidad:</label>
-      <input
-        type="number"
-        value={cantidadPedido}
-        onChange={(e) => setCantidadPedido(e.target.value)}
-        placeholder="Cantidad"
-      />
-
-      <label>Fecha del pedido:</label>
-      <input
-        type="date"
-        value={fechaPedido}
-        onChange={(e) => setFechaPedido(e.target.value)}
-      />
-
-      <div className="modal-botones">
-        <button onClick={confirmarPedido}>Confirmar</button>
-        <button onClick={() => setMostrarModalPedido(false)}>Cancelar</button>
-      </div>
-    </div>
-  </div>
-)}
-
-
 
   const manejarEditar = (producto) => {
     setModoEdicion(producto.id);
@@ -401,6 +370,35 @@ const registrarSalida = async () => {
           </tbody>
         </table>
       </div>
+      {mostrarModalPedido && (
+  <div className="modal-pedido">
+    <div className="modal-contenido">
+      <h3>Registrar pedido</h3>
+      <p><strong>Producto:</strong> {productoSeleccionado.nombre}</p>
+      <p><strong>Proveedor:</strong> {productoSeleccionado.proveedor?.nombre || 'Sin proveedor'}</p>
+
+      <label>Cantidad:</label>
+      <input
+        type="number"
+        value={cantidadPedido}
+        onChange={(e) => setCantidadPedido(e.target.value)}
+        placeholder="Cantidad"
+      />
+
+      <label>Fecha del pedido:</label>
+      <input
+        type="date"
+        value={fechaPedido}
+        onChange={(e) => setFechaPedido(e.target.value)}
+      />
+
+      <div className="modal-botones">
+        <button onClick={confirmarPedido}>Confirmar</button>
+        <button onClick={() => setMostrarModalPedido(false)}>Cancelar</button>
+      </div>
+    </div>
+  </div>
+)}
     </LayoutBase>
   );
   
