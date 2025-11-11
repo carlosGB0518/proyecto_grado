@@ -24,6 +24,7 @@ const Inventario = () => {
 
   useEffect(() => {
     cargarProductos();
+    cargarProveedores();
 
     // 🔔 Escuchar cambios en tiempo real en la tabla 'productos'
     const canal = supabase
@@ -45,14 +46,6 @@ const Inventario = () => {
     return () => {
       supabase.removeChannel(canal);
     };
-
-    const cargarProveedores = async () => {
-    const { data, error } = await supabase.from('proveedores').select('id, nombre');
-      if (!error) setProveedores(data);
-        };
-
-      cargarProveedores();
-
   }, []);
 
   const cargarProductos = async () => {
@@ -152,6 +145,11 @@ const manejarAgregar = async (e) => {
     if (inputCodigoRef.current) inputCodigoRef.current.focus();
   }
 };
+
+const cargarProveedores = async () => {
+    const { data, error } = await supabase.from('proveedores').select('id, nombre');
+      if (!error) setProveedores(data);
+        };
 
   const manejarEditar = (producto) => {
     setModoEdicion(producto.id);
