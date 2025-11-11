@@ -14,6 +14,11 @@ const Inventario = () => {
   });
   const [proveedores, setProveedores] = useState([]);
   const [proveedorId, setProveedorId] = useState('');
+  const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+  const [cantidadPedido, setCantidadPedido] = useState('');
+  const [fechaPedido, setFechaPedido] = useState('');
+  const [mostrarModalPedido, setMostrarModalPedido] = useState(false);
+
 
   const [modoEdicion, setModoEdicion] = useState(null);
   const [codigoMovimiento, setCodigoMovimiento] = useState('');
@@ -150,6 +155,69 @@ const cargarProveedores = async () => {
     const { data, error } = await supabase.from('proveedores').select('id, nombre');
       if (!error) setProveedores(data);
         };
+
+const abrirModalPedido = (producto) => {
+  setProductoSeleccionado(producto);
+  setCantidadPedido('');
+  setFechaPedido(new Date().toISOString().split('T')[0]); // fecha actual por defecto
+  setMostrarModalPedido(true);
+};
+
+const confirmarPedido = async () => {
+  if (!cantidadPedido || isNaN(cantidadPedido) || parseInt(cantidadPedido) <= 0) {
+    alert('Cantidad inválida.');
+    return;
+  }
+
+  const { error } = await supabase.from('pedidos').insert([{
+    producto_id: productoSeleccionado.id,
+    proveedor_id: productoSeleccionado.proveedor_id || null,
+    cantidad: parseInt(cantidadPedido),
+    precio_unitario: productoSeleccionado.precio,
+    fecha: fechaPedido
+  }]);
+
+  if (error) {
+    alert('Error al registrar pedido: ' + error.message);
+  } else {
+    alert('Pedido registrado correctamente.');
+    setMostrarModalPedido(false);
+    setProductoSeleccionado(null);
+    setCantidadPedido('');
+    setFechaPedido('');
+  }
+};
+{mostrarModalPedido && (
+  <div className="modal-pedido">
+    <div className="modal-contenido">
+      <h3>Registrar pedido</h3>
+      <p><strong>Producto:</strong> {productoSeleccionado.nombre}</p>
+      <p><strong>Proveedor:</strong> {productoSeleccionado.proveedor?.nombre || 'Sin proveedor'}</p>
+
+      <label>Cantidad:</label>
+      <input
+        type="number"
+        value={cantidadPedido}
+        onChange={(e) => setCantidadPedido(e.target.value)}
+        placeholder="Cantidad"
+      />
+
+      <label>Fecha del pedido:</label>
+      <input
+        type="date"
+        value={fechaPedido}
+        onChange={(e) => setFechaPedido(e.target.value)}
+      />
+
+      <div className="modal-botones">
+        <button onClick={confirmarPedido}>Confirmar</button>
+        <button onClick={() => setMostrarModalPedido(false)}>Cancelar</button>
+      </div>
+    </div>
+  </div>
+)}
+
+
 
   const manejarEditar = (producto) => {
     setModoEdicion(producto.id);
@@ -325,6 +393,8 @@ const registrarSalida = async () => {
                 <td>
                   <button onClick={() => manejarEditar(p)}>✏️</button>
                   <button onClick={() => eliminarProducto(p.id)}>🗑️</button>
+                  <button onClick={() => abrirModalPedido(p)}>📦</button>
+
                 </td>
               </tr>
             ))}
@@ -333,6 +403,7 @@ const registrarSalida = async () => {
       </div>
     </LayoutBase>
   );
+  
 };
 
 export default Inventario;
