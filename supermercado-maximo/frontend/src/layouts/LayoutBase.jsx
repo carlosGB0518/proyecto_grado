@@ -1,5 +1,5 @@
 // layouts/LayoutBase.jsx
-// import Encabezado from './Encabezado';
+import Encabezado from './Encabezado';
 import MenuLateral from './MenuLateral';
 
 const LayoutBase = ({ children }) => {
