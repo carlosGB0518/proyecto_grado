@@ -56,7 +56,7 @@ const Inventario = () => {
   const cargarProductos = async () => {
   const { data, error } = await supabase
     .from('productos')
-    .select('id, codigo, nombre, precio, stockActual, stockMinimo, proveedor:proveedor_id(nombre)')
+    .select('id, codigo, nombre, precio, stockActual, stockMinimo, proveedor_id, proveedor:proveedor_id(nombre)')
 
     .eq('activo', true); // ✅ solo productos activos
 
@@ -157,6 +157,7 @@ const cargarProveedores = async () => {
         };
 
 const abrirModalPedido = (producto) => {
+  console.log('Producto seleccionado:', producto);
   if (!producto.proveedor_id) {
     alert(`Este producto no tiene proveedor asignado. Por favor edítalo antes de hacer un pedido.`);
     return;
@@ -216,6 +217,7 @@ const confirmarPedido = async () => {
         stockActual: parseInt(nuevoProducto.stockActual),
         proveedor_id: proveedorId || null,
         stockMinimo: parseInt(nuevoProducto.stockMinimo),
+        proveedor_id: proveedorId || null
       })
       .eq('id', modoEdicion);
 
