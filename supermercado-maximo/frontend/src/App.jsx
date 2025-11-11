@@ -15,7 +15,7 @@ import Clientes from './paginas/Clientes'; // 👈 Nueva importación
 
 function App() {
   return (
-    <Router>
+    
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/registro" element={<Registro />} />
@@ -27,7 +27,7 @@ function App() {
       <Route path="/facturacion" element={<RutaPrivada><Facturacion /></RutaPrivada>} />
       <Route path="/proveedores" element={<RutaPrivada><Proveedores /></RutaPrivada>} />
     </Routes>
-    </Router>
+    
   );
 }
 
