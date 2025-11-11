@@ -157,13 +157,23 @@ const cargarProveedores = async () => {
         };
 
 const abrirModalPedido = (producto) => {
+  if (!producto.proveedor_id) {
+    alert(`Este producto no tiene proveedor asignado. Por favor edítalo antes de hacer un pedido.`);
+    return;
+  }
+
   setProductoSeleccionado(producto);
   setCantidadPedido('');
-  setFechaPedido(new Date().toISOString().split('T')[0]); // fecha actual por defecto
+  setFechaPedido(new Date().toISOString().split('T')[0]);
   setMostrarModalPedido(true);
 };
 
 const confirmarPedido = async () => {
+  if (!productoSeleccionado?.proveedor_id) {
+    alert('Este producto no tiene proveedor asignado.');
+    return;
+  }
+
   if (!cantidadPedido || isNaN(cantidadPedido) || parseInt(cantidadPedido) <= 0) {
     alert('Cantidad inválida.');
     return;
@@ -171,7 +181,7 @@ const confirmarPedido = async () => {
 
   const { error } = await supabase.from('pedidos').insert([{
     producto_id: productoSeleccionado.id,
-    proveedor_id: productoSeleccionado.proveedor_id || null,
+    proveedor_id: productoSeleccionado.proveedor_id,
     cantidad: parseInt(cantidadPedido),
     precio_unitario: productoSeleccionado.precio,
     fecha: fechaPedido
@@ -187,6 +197,7 @@ const confirmarPedido = async () => {
     setFechaPedido('');
   }
 };
+
 
   const manejarEditar = (producto) => {
     setModoEdicion(producto.id);
