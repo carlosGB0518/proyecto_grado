@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../supabase';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { crearPDFConTabla } from '../utils/pdfUtils';
+
 import LayoutBase from '../layouts/LayoutBase';
 import '../estilos/pedidos.css';
 
@@ -18,6 +20,8 @@ const Pedidos = () => {
       if (!error) setProveedores(data);
     };
     cargarProveedores();
+     const doc = new jsPDF();
+      console.log('¿autoTable existe?', typeof doc.autoTable);
   }, []);
 
   const consultarPedidos = async () => {
@@ -74,6 +78,13 @@ const Pedidos = () => {
 
     doc.save(nombreArchivo);
   };
+  crearPDFConTabla(
+  `Pedido para: ${proveedor?.nombre || 'Varios proveedores'}`,
+  ['#', 'Producto', 'Cantidad', 'Precio Unitario', 'Fecha'],
+  filas,
+  nombreArchivo
+);
+
 
   return (
     <LayoutBase>
