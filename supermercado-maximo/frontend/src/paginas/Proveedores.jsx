@@ -5,6 +5,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import '../estilos/proveedores.css';
 
+const Proveedores = () => {
 function FormularioProveedor({ onGuardar, proveedorEditando, cancelarEdicion }) {
   const [nombre, setNombre] = useState("");
   const [nit, setNit] = useState("");
@@ -158,5 +159,5 @@ function Proveedores() {
     </LayoutBase>
   );
 }
-
+};
 export default Proveedores;
