@@ -58,7 +58,6 @@ const Pedidos = () => {
       new Date(p.fecha).toLocaleDateString()
     ]);
 
-    // Calcular total
     const total = pedidos.reduce(
       (acc, p) => acc + p.cantidad * p.precio_unitario,
       0
@@ -68,9 +67,7 @@ const Pedidos = () => {
       `Pedido para: ${proveedor?.nombre || 'Varios proveedores'}`,
       ['#', 'Producto', 'Cantidad', 'Precio Unitario', 'Fecha'],
       filas,
-      proveedor?.nombre
-        ? `pedido_${proveedor.nombre}.pdf`
-        : 'pedidos_varios.pdf',
+      proveedor?.nombre ? `pedido_${proveedor.nombre}.pdf` : 'pedidos_varios.pdf',
       { proveedor, total }
     );
   };
@@ -82,31 +79,18 @@ const Pedidos = () => {
 
         <div className="filtros">
           <label>Proveedor:</label>
-          <select
-            value={proveedorId}
-            onChange={(e) => setProveedorId(e.target.value)}
-          >
+          <select value={proveedorId} onChange={(e) => setProveedorId(e.target.value)}>
             <option value="">Todos</option>
             {proveedores.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nombre}
-              </option>
+              <option key={p.id} value={p.id}>{p.nombre}</option>
             ))}
           </select>
 
           <label>Desde:</label>
-          <input
-            type="date"
-            value={fechaInicio}
-            onChange={(e) => setFechaInicio(e.target.value)}
-          />
+          <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
 
           <label>Hasta:</label>
-          <input
-            type="date"
-            value={fechaFin}
-            onChange={(e) => setFechaFin(e.target.value)}
-          />
+          <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
 
           <button onClick={consultarPedidos}>Buscar</button>
           <button onClick={generarPDF}>📄 Exportar PDF</button>

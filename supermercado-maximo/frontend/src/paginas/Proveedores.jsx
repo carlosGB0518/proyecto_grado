@@ -60,26 +60,27 @@ function FormularioProveedor({ onGuardar, proveedorEditando, cancelarEdicion }) 
 function ListaProveedores({ proveedores, onEditar }) {
   const [filtro, setFiltro] = useState("");
 
-  const generarPDFProveedores = () => {
-    if (proveedores.length === 0) {
-      alert('No hay proveedores registrados.');
-      return;
-    }
+const generarPDFProveedores = () => {
+  if (proveedores.length === 0) {
+    alert('No hay proveedores registrados.');
+    return;
+  }
 
-    const filas = proveedores.map((p, i) => [
-      i + 1,
-      p.nombre,
-      p.email || '—',
-      p.telefono || '—'
-    ]);
+  const filas = proveedores.map((p, i) => [
+    i + 1,
+    p.nombre,
+    p.email || '—',
+    p.telefono || '—'
+  ]);
 
-    crearPDFConTabla(
-      'Listado de Proveedores',
-      ['#', 'Nombre', 'Email', 'Teléfono'],
-      filas,
-      'proveedores.pdf'
-    );
-  };
+  crearPDFConTabla(
+    'Listado de Proveedores',
+    ['#', 'Nombre', 'Email', 'Teléfono'],
+    filas,
+    'proveedores.pdf'
+  );
+};
+
 
   const proveedoresFiltrados = proveedores.filter(p =>
     p.nombre.toLowerCase().includes(filtro.toLowerCase()) ||
