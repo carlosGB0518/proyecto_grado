@@ -5,7 +5,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import '../estilos/proveedores.css';
 
-const Proveedores = () => {
+// 🧩 Subcomponente: Formulario para crear o editar proveedor
 function FormularioProveedor({ onGuardar, proveedorEditando, cancelarEdicion }) {
   const [nombre, setNombre] = useState("");
   const [nit, setNit] = useState("");
@@ -57,6 +57,7 @@ function FormularioProveedor({ onGuardar, proveedorEditando, cancelarEdicion }) 
   );
 }
 
+// 🧩 Subcomponente: Lista de proveedores con filtro y exportación
 function ListaProveedores({ proveedores, onEditar }) {
   const [filtro, setFiltro] = useState("");
 
@@ -102,6 +103,7 @@ function ListaProveedores({ proveedores, onEditar }) {
   );
 }
 
+// 🧩 Subcomponente: Productos vinculados a proveedor
 function ProductosPorProveedor({ proveedorId }) {
   const [productos, setProductos] = useState([]);
 
@@ -127,7 +129,8 @@ function ProductosPorProveedor({ proveedorId }) {
   );
 }
 
-function Proveedores() {
+// ✅ Componente principal
+const Proveedores = () => {
   const [proveedores, setProveedores] = useState([]);
   const [proveedorEditando, setProveedorEditando] = useState(null);
   const [proveedorSeleccionado, setProveedorSeleccionado] = useState(null);
@@ -158,6 +161,6 @@ function Proveedores() {
       <ProductosPorProveedor proveedorId={proveedorSeleccionado} />
     </LayoutBase>
   );
-}
 };
+
 export default Proveedores;
