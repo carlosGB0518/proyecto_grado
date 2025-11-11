@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabase';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import { crearPDFConTabla } from '../utils/pdfUtils';
-
 import LayoutBase from '../layouts/LayoutBase';
 import '../estilos/pedidos.css';
 
@@ -16,12 +13,12 @@ const Pedidos = () => {
 
   useEffect(() => {
     const cargarProveedores = async () => {
-      const { data, error } = await supabase.from('proveedores').select('id, nombre, email, telefono');
+      const { data, error } = await supabase
+        .from('proveedores')
+        .select('id, nombre, email, telefono');
       if (!error) setProveedores(data);
     };
     cargarProveedores();
-     const doc = new jsPDF();
-      console.log('¿autoTable existe?', typeof doc.autoTable);
   }, []);
 
   const consultarPedidos = async () => {
@@ -51,12 +48,7 @@ const Pedidos = () => {
       return;
     }
 
-    const doc = new jsPDF();
     const proveedor = pedidos[0].proveedor;
-
-    doc.text(`Pedido para: ${proveedor?.nombre || 'Varios proveedores'}`, 14, 20);
-    if (proveedor?.email) doc.text(`Email: ${proveedor.email}`, 14, 28);
-    if (proveedor?.telefono) doc.text(`Teléfono: ${proveedor.telefono}`, 14, 36);
 
     const filas = pedidos.map((p, i) => [
       i + 1,
@@ -66,25 +58,22 @@ const Pedidos = () => {
       new Date(p.fecha).toLocaleDateString()
     ]);
 
-    doc.autoTable({
-      head: [['#', 'Producto', 'Cantidad', 'Precio Unitario', 'Fecha']],
-      body: filas,
-      startY: 45
-    });
+    // Calcular total
+    const total = pedidos.reduce(
+      (acc, p) => acc + p.cantidad * p.precio_unitario,
+      0
+    );
 
-    const nombreArchivo = proveedor?.nombre
-      ? `pedido_${proveedor.nombre}.pdf`
-      : 'pedidos_varios.pdf';
-
-    doc.save(nombreArchivo);
+    crearPDFConTabla(
+      `Pedido para: ${proveedor?.nombre || 'Varios proveedores'}`,
+      ['#', 'Producto', 'Cantidad', 'Precio Unitario', 'Fecha'],
+      filas,
+      proveedor?.nombre
+        ? `pedido_${proveedor.nombre}.pdf`
+        : 'pedidos_varios.pdf',
+      { proveedor, total }
+    );
   };
-  crearPDFConTabla(
-  `Pedido para: ${proveedor?.nombre || 'Varios proveedores'}`,
-  ['#', 'Producto', 'Cantidad', 'Precio Unitario', 'Fecha'],
-  filas,
-  nombreArchivo
-);
-
 
   return (
     <LayoutBase>
@@ -93,18 +82,31 @@ const Pedidos = () => {
 
         <div className="filtros">
           <label>Proveedor:</label>
-          <select value={proveedorId} onChange={(e) => setProveedorId(e.target.value)}>
+          <select
+            value={proveedorId}
+            onChange={(e) => setProveedorId(e.target.value)}
+          >
             <option value="">Todos</option>
             {proveedores.map((p) => (
-              <option key={p.id} value={p.id}>{p.nombre}</option>
+              <option key={p.id} value={p.id}>
+                {p.nombre}
+              </option>
             ))}
           </select>
 
           <label>Desde:</label>
-          <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
+          <input
+            type="date"
+            value={fechaInicio}
+            onChange={(e) => setFechaInicio(e.target.value)}
+          />
 
           <label>Hasta:</label>
-          <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
+          <input
+            type="date"
+            value={fechaFin}
+            onChange={(e) => setFechaFin(e.target.value)}
+          />
 
           <button onClick={consultarPedidos}>Buscar</button>
           <button onClick={generarPDF}>📄 Exportar PDF</button>

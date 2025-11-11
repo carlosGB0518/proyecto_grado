@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabase';
 import LayoutBase from '../layouts/LayoutBase';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { crearPDFConTabla } from '../utils/pdfUtils';
 import '../estilos/proveedores.css';
 
 // 🧩 Subcomponente: Formulario para crear o editar proveedor
@@ -61,13 +60,25 @@ function FormularioProveedor({ onGuardar, proveedorEditando, cancelarEdicion }) 
 function ListaProveedores({ proveedores, onEditar }) {
   const [filtro, setFiltro] = useState("");
 
-  const exportarPDF = () => {
-    const doc = new jsPDF();
-    autoTable(doc, {
-      head: [["Nombre", "NIT", "Teléfono", "Email", "Dirección"]],
-      body: proveedores.map(p => [p.nombre, p.nit, p.telefono, p.email, p.direccion]),
-    });
-    doc.save("proveedores.pdf");
+  const generarPDFProveedores = () => {
+    if (proveedores.length === 0) {
+      alert('No hay proveedores registrados.');
+      return;
+    }
+
+    const filas = proveedores.map((p, i) => [
+      i + 1,
+      p.nombre,
+      p.email || '—',
+      p.telefono || '—'
+    ]);
+
+    crearPDFConTabla(
+      'Listado de Proveedores',
+      ['#', 'Nombre', 'Email', 'Teléfono'],
+      filas,
+      'proveedores.pdf'
+    );
   };
 
   const proveedoresFiltrados = proveedores.filter(p =>
@@ -78,8 +89,12 @@ function ListaProveedores({ proveedores, onEditar }) {
   return (
     <div className="lista-proveedores">
       <h2>Listado de proveedores</h2>
-      <input placeholder="Buscar por nombre o NIT" value={filtro} onChange={(e) => setFiltro(e.target.value)} />
-      <button onClick={exportarPDF}>📄 Exportar PDF</button>
+      <input
+        placeholder="Buscar por nombre o NIT"
+        value={filtro}
+        onChange={(e) => setFiltro(e.target.value)}
+      />
+      <button onClick={generarPDFProveedores}>📄 Exportar PDF</button>
       <table>
         <thead>
           <tr>
