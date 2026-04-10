@@ -39,5 +39,10 @@ export const crearPDFConTabla = (titulo, encabezado, filas, nombreArchivo, infoE
     doc.text(`Total del pedido: $${infoExtra.total.toLocaleString()}`, 14, finalY + 10);
   }
 
+  // pie de pagina con usuario
+  const pageHeigth = doc.internal.pageSize.height;
+  const usuario = infoExtra.usuario || 'Carlos';
+  doc.text(`Generado por: ${usuario}`, 14, pageHeigth - 10);
+
   doc.save(nombreArchivo);
 };
