@@ -9,8 +9,8 @@ const Inventario = () => {
     codigo: '',
     nombre: '',
     precio: '',
-    stockActual: '',
-    stockMinimo: '',
+    stockactual: '',
+    stockminimo: '',
   });
   const [proveedores, setProveedores] = useState([]);
   const [proveedorId, setProveedorId] = useState('');
@@ -56,7 +56,7 @@ const Inventario = () => {
   const cargarProductos = async () => {
   const { data, error } = await supabase
     .from('productos')
-    .select('id, codigo, nombre, precio, stockActual, stockMinimo, proveedor_id, proveedor:proveedor_id(nombre)')
+    .select('id, codigo, nombre, precio, stockactual, stockminimo, proveedor_id, proveedor:proveedor_id(nombre)')
 
     .eq('activo', true); // ✅ solo productos activos
 
@@ -73,9 +73,9 @@ const Inventario = () => {
 
 const manejarAgregar = async (e) => {
   e.preventDefault();
-  const { codigo, nombre, precio, stockActual, stockMinimo } = nuevoProducto;
+  const { codigo, nombre, precio, stockactual, stockminimo } = nuevoProducto;
 
-  if (!codigo || !nombre || !precio || stockActual === '' || stockMinimo === '') return;
+  if (!codigo || !nombre || !precio || stockactual === '' || stockminimo === '') return;
 
   // ✅ Verificar si ya existe un producto con ese código
   const { data: productoExistente } = await supabase
@@ -92,8 +92,8 @@ const manejarAgregar = async (e) => {
         .update({
           nombre,
           precio: parseInt(precio),
-          stockActual: parseInt(stockActual),
-          stockMinimo: parseInt(stockMinimo),
+          stockactual: parseInt(stockactual),
+          stockminimo: parseInt(stockminimo),
           activo: true
         })
         .eq('id', productoExistente.id);
@@ -106,8 +106,8 @@ const manejarAgregar = async (e) => {
           codigo: '',
           nombre: '',
           precio: '',
-          stockActual: '',
-          stockMinimo: '',
+          stockactual: '',
+          stockminimo: '',
         });
         if (inputCodigoRef.current) inputCodigoRef.current.focus();
       }
@@ -127,8 +127,8 @@ const manejarAgregar = async (e) => {
         codigo,
         nombre,
         precio: parseInt(precio),
-        stockActual: parseInt(stockActual),
-        stockMinimo: parseInt(stockMinimo),
+        stockactual: parseInt(stockactual),
+        stockminimo: parseInt(stockminimo),
         proveedor_id: proveedorId || null,
         activo: true
       },
@@ -144,8 +144,8 @@ const manejarAgregar = async (e) => {
       codigo: '',
       nombre: '',
       precio: '',
-      stockActual: '',
-      stockMinimo: '',
+      stockactual: '',
+      stockminimo: '',
     });
     if (inputCodigoRef.current) inputCodigoRef.current.focus();
   }
@@ -214,9 +214,9 @@ const confirmarPedido = async () => {
       .update({
         nombre: nuevoProducto.nombre,
         precio: parseInt(nuevoProducto.precio),
-        stockActual: parseInt(nuevoProducto.stockActual),
+        stockactual: parseInt(nuevoProducto.stockactual),
         proveedor_id: proveedorId || null,
-        stockMinimo: parseInt(nuevoProducto.stockMinimo),
+        stockminimo: parseInt(nuevoProducto.stockminimo),
         proveedor_id: proveedorId || null
       })
       .eq('id', modoEdicion);
@@ -230,8 +230,8 @@ const confirmarPedido = async () => {
         codigo: '',
         nombre: '',
         precio: '',
-        stockActual: '',
-        stockMinimo: '',
+        stockactual: '',
+        stockminimo: '',
       });
       if (inputCodigoRef.current) inputCodigoRef.current.focus();
     }
@@ -260,10 +260,10 @@ const registrarEntrada = async () => {
 
   const producto = productos.find((p) => p.codigo === codigoMovimiento);
   if (producto) {
-    const nuevoStock = producto.stockActual + parseInt(cantidadMovimiento);
+    const nuevoStock = producto.stockactual + parseInt(cantidadMovimiento);
     const { error } = await supabase
       .from('productos')
-      .update({ stockActual: nuevoStock })
+      .update({ stockactual: nuevoStock })
       .eq('id', producto.id);
     if (!error) {
       await cargarProductos();
@@ -283,10 +283,10 @@ const registrarSalida = async () => {
 
   const producto = productos.find((p) => p.codigo === codigoMovimiento);
   if (producto) {
-    const nuevoStock = producto.stockActual + parseInt(cantidadMovimiento);
+    const nuevoStock = producto.stockactual + parseInt(cantidadMovimiento);
     const { error } = await supabase
       .from('productos')
-      .update({ stockActual: nuevoStock })
+      .update({ stockactual: nuevoStock })
       .eq('id', producto.id);
     if (!error) {
       await cargarProductos();
@@ -307,8 +307,8 @@ const registrarSalida = async () => {
           
           <input type="text" name="nombre" placeholder="Nombre" value={nuevoProducto.nombre} onChange={manejarCambio} required />
           <input type="number" name="precio" placeholder="Precio" value={nuevoProducto.precio} onChange={manejarCambio} required />
-          <input type="number" name="stockActual" placeholder="Stock actual" value={nuevoProducto.stockActual} onChange={manejarCambio} required />
-          <input type="number" name="stockMinimo" placeholder="Stock mínimo" value={nuevoProducto.stockMinimo} onChange={manejarCambio} required />
+          <input type="number" name="stockactual" placeholder="Stock actual" value={nuevoProducto.stockactual} onChange={manejarCambio} required />
+          <input type="number" name="stockminimo" placeholder="Stock mínimo" value={nuevoProducto.stockminimo} onChange={manejarCambio} required />
           <input
             ref={inputCodigoRef}
             type="text"
@@ -364,12 +364,12 @@ const registrarSalida = async () => {
           </thead>
           <tbody>
             {productos.map((p) => (
-              <tr key={p.id} className={p.stockActual < p.stockMinimo ? 'stock-bajo' : ''}>
+              <tr key={p.id} className={p.stockactual < p.stockminimo ? 'stock-bajo' : ''}>
                 <td>{p.codigo}</td>
                 <td>{p.nombre}</td>
                 <td>${p.precio.toLocaleString()}</td>
-                <td>{p.stockActual}</td>
-                <td>{p.stockMinimo}</td>
+                <td>{p.stockactual}</td>
+                <td>{p.stockminimo}</td>
                 <td>{p.proveedor?.nombre || 'Sin proveedor'}</td>
 
                 <td>
