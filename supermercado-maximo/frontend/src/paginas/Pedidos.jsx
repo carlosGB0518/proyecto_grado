@@ -68,7 +68,7 @@ const Pedidos = () => {
       ['#', 'Producto', 'Cantidad', 'Precio Unitario', 'Fecha'],
       filas,
       proveedor?.nombre ? `pedido_${proveedor.nombre}.pdf` : 'pedidos_varios.pdf',
-      { proveedor, total }
+      { proveedor, total, usuario: 'Carlos' }
     );
   };
 

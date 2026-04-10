@@ -77,7 +77,7 @@ const generarPDFProveedores = () => {
     'Listado de Proveedores',
     ['#', 'Nombre', 'Email', 'Teléfono'],
     filas,
-    'proveedores.pdf'
+    'proveedores.pdf', { usuario: 'Carlos' }
   );
 };
 
