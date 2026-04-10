@@ -1,33 +1,146 @@
-.MenuLateral {
-  display: flex;                /* convierte la lista en fila */
-  justify-content: center;     /* centra horizontalmente los ítems */
-  align-items: center;         /* centra verticalmente */
-  list-style: none;            /* elimina viñetas */
-  margin: 0;                   /* elimina margen por defecto */
-  padding: 1rem;
-  background-color: #f4f4f4;
-  flex-wrap: wrap;             /* permite que los elementos bajen en pantallas pequeñas */
-  gap: 1rem;                   /* espacio entre elementos */
+/* ===== MENÚ LATERAL — Supermercado Máximo ===== */
+
+.menu-lateral {
+  width: 220px;
+  min-width: 220px;
+  height: 100vh;
+  background: linear-gradient(180deg, var(--color-verde) 0%, var(--color-verde-hover) 100%);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  box-shadow: 4px 0 16px rgba(0,0,0,0.12);
+  z-index: 100;
 }
 
-.MenuLateral ul {
-  font-family: Calibri;
+/* ===== LOGO ===== */
+.menu-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1.2rem 1.2rem;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+
+.menu-logo-icon {
+  font-size: 1.8rem;
+}
+
+.menu-logo-nombre {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--color-blanco);
+  line-height: 1.1;
+}
+
+.menu-logo-maximo {
+  color: var(--color-amarillo);
+  font-size: 1.1rem;
+}
+
+/* ===== NAVEGACIÓN ===== */
+.menu-nav {
+  flex: 1;
+  padding: 1rem 0.75rem;
+}
+
+.menu-nav ul {
   list-style: none;
   display: flex;
-  
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-
-.MenuLateral a {
-  padding: 0.5rem 1rem;
-  background-color: #e0e0e0;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.3s;
+.menu-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  border-radius: var(--radio-sm);
+  color: rgba(255,255,255,0.85);
+  font-family: var(--fuente-cuerpo);
+  font-size: 0.9rem;
+  font-weight: 500;
   text-decoration: none;
-  color: inherit
+  transition: var(--transicion);
 }
 
-.MenuLateral li:hover {
-  background-color: #d2d2d2;
+.menu-link:hover {
+  background: rgba(255,255,255,0.15);
+  color: var(--color-blanco);
+}
+
+.menu-link-activo {
+  background: var(--color-amarillo) !important;
+  color: var(--color-oscuro) !important;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(253,216,53,0.35);
+}
+
+.menu-link-activo:hover {
+  background: var(--color-amarillo-hover) !important;
+}
+
+.menu-icono {
+  font-size: 1.1rem;
+  width: 24px;
+  text-align: center;
+}
+
+.menu-etiqueta {
+  flex: 1;
+}
+
+/* ===== FOOTER ===== */
+.menu-footer {
+  padding: 1rem 1.2rem;
+  border-top: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.45);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .menu-lateral {
+    width: 100%;
+    min-width: unset;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .menu-logo {
+    display: none;
+  }
+
+  .menu-nav {
+    padding: 0.5rem;
+  }
+
+  .menu-nav ul {
+    flex-direction: row;
+    gap: 0.25rem;
+    white-space: nowrap;
+  }
+
+  .menu-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .menu-etiqueta {
+    display: none;
+  }
+
+  .menu-footer {
+    display: none;
+  }
 }

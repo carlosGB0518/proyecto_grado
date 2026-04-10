@@ -1,24 +1,39 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { UsuarioContexto } from '../contextos/UsuarioContexto';
 
-const RutaPrivada = ({ children }) => {
-  const { usuario } = useContext(UsuarioContexto);
-  const [verificado, setVerificado] = useState(false);
+/**
+ * RutaPrivada
+ * @param {string[]} roles - Roles permitidos para acceder. Si está vacío, cualquier usuario autenticado puede entrar.
+ */
+const RutaPrivada = ({ children, roles = [] }) => {
+  const { usuario, cargandoSesion } = useContext(UsuarioContexto);
 
-  useEffect(() => {
-    // Simular una verificación rápida (evita quedarse en "Cargando..." indefinidamente)
-    setTimeout(() => {
-      setVerificado(true);
-    }, 100); // 100ms
-  }, []);
-
-  if (!verificado) {
-    return <div>Cargando...</div>;
+  if (cargandoSesion) {
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        height: '100vh', fontFamily: 'DM Sans, sans-serif',
+        color: '#2E7D32', fontSize: '1rem'
+      }}>
+        Cargando...
+      </div>
+    );
   }
 
   if (!usuario) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Si se especificaron roles y el usuario no tiene ninguno de ellos
+  if (roles.length > 0 && !roles.includes(usuario.rol)) {
+    return (
+      <div className="sin-permiso">
+        <h2>🚫 Acceso Restringido</h2>
+        <p>No tienes permisos para acceder a este módulo.</p>
+        <p>Tu rol actual es: <strong>{usuario.rol}</strong></p>
+      </div>
+    );
   }
 
   return children;

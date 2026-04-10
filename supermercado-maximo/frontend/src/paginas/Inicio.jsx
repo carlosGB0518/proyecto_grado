@@ -1,14 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import LayoutBase from '../layouts/LayoutBase';
 import { supabase } from '../supabase';
+import { UsuarioContexto } from '../contextos/UsuarioContexto';
 import '../estilos/inicio.css';
 
+const saludosPorRol = {
+  administrador: 'Panel Administrativo',
+  supervisor:    'Panel de Supervisión',
+  cajero:        'Módulo de Caja',
+};
+
 const Inicio = () => {
+  const { usuario } = useContext(UsuarioContexto);
   const [estadisticas, setEstadisticas] = useState({
     ventasDelDia: 0,
     productosStockBajo: 0,
     clientesRegistrados: 0,
-    cargando: true
+    cargando: true,
   });
 
   useEffect(() => {
@@ -16,131 +24,94 @@ const Inicio = () => {
   }, []);
 
   const cargarEstadisticas = async () => {
-    setEstadisticas(prev => ({ ...prev, cargando: true }));
+    setEstadisticas((prev) => ({ ...prev, cargando: true }));
 
     try {
-      // 1️⃣ Obtener ventas del día actual
       const hoy = new Date();
       hoy.setHours(0, 0, 0, 0);
-      const fechaHoy = hoy.toISOString();
 
-      const { data: ventas, error: ventasError } = await supabase
+      const { data: ventas } = await supabase
         .from('ventas')
         .select('total')
-        .gte('fecha', fechaHoy);
+        .gte('fecha', hoy.toISOString());
 
-      if (ventasError) {
-        console.error('Error cargando ventas:', ventasError);
-      }
+      const totalVentas = ventas?.reduce((sum, v) => sum + (v.total || 0), 0) || 0;
 
-      const totalVentas = ventas?.reduce((sum, venta) => sum + (venta.total || 0), 0) || 0;
-
-      // 2️⃣ Obtener productos con stock bajo
-      // Primero obtenemos todos los productos y filtramos manualmente
-      const { data: todosProductos, error: stockError } = await supabase
+      const { data: todosProductos } = await supabase
         .from('productos')
-        .select('id, nombre, stockActual, stockMinimo');
+        .select('id, stockActual, stockMinimo');
 
-      if (stockError) {
-        console.error('Error cargando productos:', stockError);
-      }
-
-      // Filtrar productos donde stockActual < stockMinimo
       const productosStockBajo = todosProductos?.filter(
-        p => p.stockActual < p.stockMinimo
-      ) || [];
+        (p) => p.stockActual < p.stockMinimo
+      ).length || 0;
 
-      console.log('Productos con stock bajo:', productosStockBajo);
-
-      // 3️⃣ Obtener total de clientes registrados
-      const { count: totalClientes, error: clientesError } = await supabase
+      const { count: totalClientes } = await supabase
         .from('clientes')
         .select('*', { count: 'exact', head: true });
 
-      if (clientesError) {
-        console.error('Error cargando clientes:', clientesError);
-      }
-
       setEstadisticas({
         ventasDelDia: totalVentas,
-        productosStockBajo: productosStockBajo.length,
+        productosStockBajo,
         clientesRegistrados: totalClientes || 0,
-        cargando: false
+        cargando: false,
       });
-
-    } catch (error) {
-      console.error('Error general cargando estadísticas:', error);
-      setEstadisticas({
-        ventasDelDia: 0,
-        productosStockBajo: 0,
-        clientesRegistrados: 0,
-        cargando: false
-      });
+    } catch {
+      setEstadisticas({ ventasDelDia: 0, productosStockBajo: 0, clientesRegistrados: 0, cargando: false });
     }
   };
+
+  const panelLabel = saludosPorRol[usuario?.rol] || 'Inicio';
 
   return (
     <LayoutBase>
       <div className="inicio-container">
-        <h1 className="inicio-titulo">Bienvenido al Sistema POS del Supermercado</h1>
-        <p className="inicio-parrafo">
-          Desde aquí puedes gestionar las ventas, inventario, caja, clientes y más. 
-          Usa el menú lateral para navegar entre los módulos del sistema.
-        </p>
-
-        <div className="tarjetas-grid">
-          {/* Tarjeta 1: Ventas del Día */}
-          <div className="tarjeta">
-            <h2 className="tarjeta-titulo">Ventas del Día</h2>
-            <p className="tarjeta-dato ventas">
-              {estadisticas.cargando 
-                ? 'Cargando...' 
-                : `$${estadisticas.ventasDelDia.toLocaleString('es-CO')}`
-              }
+        {/* Bienvenida */}
+        <div className="inicio-bienvenida">
+          <div>
+            <h1 className="inicio-titulo">
+              Bienvenido, {usuario?.nombre?.split(' ')[0] || 'Usuario'} 👋
+            </h1>
+            <p className="inicio-parrafo">
+              {panelLabel} · Usa el menú lateral para navegar entre los módulos disponibles.
             </p>
           </div>
-
-          {/* Tarjeta 2: Productos en Bajo Stock */}
-          <div className="tarjeta">
-            <h2 className="tarjeta-titulo">Productos en Bajo Stock</h2>
-            <p className="tarjeta-dato stock">
-              {estadisticas.cargando 
-                ? 'Cargando...' 
-                : `${estadisticas.productosStockBajo} producto${estadisticas.productosStockBajo !== 1 ? 's' : ''}`
-              }
-            </p>
-          </div>
-
-          {/* Tarjeta 3: Clientes Registrados */}
-          <div className="tarjeta">
-            <h2 className="tarjeta-titulo">Clientes Registrados</h2>
-            <p className="tarjeta-dato clientes">
-              {estadisticas.cargando 
-                ? 'Cargando...' 
-                : `${estadisticas.clientesRegistrados} cliente${estadisticas.clientesRegistrados !== 1 ? 's' : ''}`
-              }
-            </p>
-          </div>
-        </div>
-
-        {/* Botón para actualizar manualmente */}
-        <div style={{ textAlign: 'center', marginTop: '20px' }}>
-          <button 
+          <button
             onClick={cargarEstadisticas}
             disabled={estadisticas.cargando}
-            style={{
-              padding: '10px 20px',
-              fontSize: '14px',
-              backgroundColor: estadisticas.cargando ? '#95a5a6' : '#3498db',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: estadisticas.cargando ? 'not-allowed' : 'pointer',
-              transition: 'all 0.3s'
-            }}
+            className="inicio-btn-actualizar"
           >
-            {estadisticas.cargando ? '⏳ Actualizando...' : '🔄 Actualizar Estadísticas'}
+            {estadisticas.cargando ? '⏳ Actualizando...' : '🔄 Actualizar'}
           </button>
+        </div>
+
+        {/* Tarjetas */}
+        <div className="tarjetas-grid">
+          <div className="tarjeta">
+            <p className="tarjeta-titulo">💰 Ventas del Día</p>
+            <p className="tarjeta-dato ventas">
+              {estadisticas.cargando
+                ? '—'
+                : `$${estadisticas.ventasDelDia.toLocaleString('es-CO')}`}
+            </p>
+          </div>
+
+          <div className="tarjeta">
+            <p className="tarjeta-titulo">📦 Productos con Stock Bajo</p>
+            <p className="tarjeta-dato stock">
+              {estadisticas.cargando
+                ? '—'
+                : `${estadisticas.productosStockBajo} producto${estadisticas.productosStockBajo !== 1 ? 's' : ''}`}
+            </p>
+          </div>
+
+          <div className="tarjeta">
+            <p className="tarjeta-titulo">👥 Clientes Registrados</p>
+            <p className="tarjeta-dato clientes">
+              {estadisticas.cargando
+                ? '—'
+                : `${estadisticas.clientesRegistrados} cliente${estadisticas.clientesRegistrados !== 1 ? 's' : ''}`}
+            </p>
+          </div>
         </div>
       </div>
     </LayoutBase>
