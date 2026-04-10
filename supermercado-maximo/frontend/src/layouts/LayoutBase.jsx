@@ -1,14 +1,21 @@
-// layouts/LayoutBase.jsx
 import Encabezado from './Encabezado';
 import MenuLateral from './MenuLateral';
+import '../estilos/global.css';
 
 const LayoutBase = ({ children }) => {
   return (
-    <div className="flex h-screen">
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       <MenuLateral />
-      <div className="flex flex-col flex-grow">
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
         <Encabezado />
-        <main className="p-4 overflow-y-auto">{children}</main>
+        <main style={{
+          flex: 1,
+          overflowY: 'auto',
+          background: 'var(--color-gris)',
+          padding: '0',
+        }}>
+          {children}
+        </main>
       </div>
     </div>
   );
