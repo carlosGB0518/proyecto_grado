@@ -20,10 +20,10 @@ export const crearPDFConTabla = (titulo, encabezado, filas, nombreArchivo, infoE
   let startY = 30;
   if (infoExtra.proveedor) {
     const { nombre, email, telefono } = infoExtra.proveedor || {};
-    if (nombre) doc.text(`Proveedor: ${nombre}`, 14, 28);
-    if (email) doc.text(`Email: ${email}`, 14, 36);
-    if (telefono) doc.text(`Teléfono: ${telefono}`, 14, 44);
-    startY = 55;
+    if (nombre) doc.text(`Proveedor: ${nombre}`, 14, 35);
+    if (email) doc.text(`Email: ${email}`, 14, 42);
+    if (telefono) doc.text(`Teléfono: ${telefono}`, 14, 49);
+    startY = 60;
   }
 
   // Tabla (usando la función autoTable en vez de doc.autoTable)
@@ -39,10 +39,15 @@ export const crearPDFConTabla = (titulo, encabezado, filas, nombreArchivo, infoE
     doc.text(`Total del pedido: $${infoExtra.total.toLocaleString()}`, 14, finalY + 10);
   }
 
-  // pie de pagina con usuario
-  const pageHeigth = doc.internal.pageSize.height;
+  // pie de pagina con usuario y numero de pagina
+  const pageCount = doc.internal.getNumberOfPages();
   const usuario = infoExtra.usuario || 'Carlos';
-  doc.text(`Generado por: ${usuario}`, 14, pageHeigth - 10);
+  
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    const pageHeight = doc.internal.pageSize.height;
+    doc.text(`Expotado por: ${usuario} - Página ${i} de ${pageCount}`, 14, pageHeight - 10);
+  }
 
   doc.save(nombreArchivo);
 };
