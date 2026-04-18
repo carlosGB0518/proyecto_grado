@@ -6,188 +6,180 @@ import {
 } from "../services/factus.service.js";
 import { supabase } from "../supabase.js";
 
-
 /**
- * 🧾 Emitir factura electrónica y guardar registro completo en Supabase
+ * 🧾 Emitir factura electrónica y guardar en Supabase
  */
 export async function emitirFactura(req, res) {
-  console.log("📥 Petición recibida en /api/facturas:", req.body);
+  console.log("📥 [FACTURAS] Body recibido:", JSON.stringify(req.body, null, 2));
 
   try {
     if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).json({ error: "El body está vacío." });
+    }
+
+    // 1️⃣ Construir payload para Factus
+    const payload = buildFactura(req.body);
+    console.log("📦 [FACTURAS] Payload a Factus:", JSON.stringify(payload, null, 2));
+
+    // 2️⃣ Llamar a Factus
+    let factusRespuesta;
+    try {
+      const { data } = await crearYValidarFactura(payload);
+      factusRespuesta = data;
+      console.log("✅ [FACTURAS] Respuesta Factus:", JSON.stringify(data, null, 2));
+    } catch (factusError) {
+      const detalle = factusError.response?.data || factusError.message;
+      console.error("❌ [FACTURAS] Error en Factus:", detalle);
+
+      // Guardar en Supabase con estado 'error' para que aparezca en el listado
+      const { error: supaErr } = await supabase.from("facturas").insert([{
+        venta_id:       req.body.venta_id || null,
+        estado:         "error",
+        datos_completos: { error: detalle },
+      }]);
+
+      if (supaErr) {
+        console.error("❌ [FACTURAS] Error guardando error en Supabase:", supaErr.message);
+      }
+
       return res.status(400).json({
-        error: "El body está vacío. Debes enviar los datos de la factura.",
+        error:   "Error al comunicarse con Factus",
+        detalle: detalle,
       });
     }
 
-    // 1️⃣ Construir payload compatible con Factus
-    const payload = buildFactura(req.body);
-    console.log("📦 Payload enviado a Factus:", payload);
+    // 3️⃣ Extraer campos de la respuesta de Factus
+    // Factus puede devolver la info en distintos niveles según la versión
+    const bill = factusRespuesta?.data?.bill || factusRespuesta?.bill || {};
 
-    // 2️⃣ Crear y validar factura en Factus
-    const { data } = await crearYValidarFactura(payload);
-    console.log("✅ Respuesta Factus:", data);
-
-    // 📊 Extraer los datos principales
     const facturaData = {
-      venta_id: req.body.venta_id || null,
-      uuid: data?.data?.bill?.cufe || null,
-      numero_factura: data?.data?.bill?.number || null,
-      estado: data?.status || "emitida",
-      cufe: data?.data?.bill?.cufe || null,
-      pdf_url: data?.data?.bill?.public_url || null, // 🔗 Enlace público de Factus
-      xml_url: null, // Se completará cuando se descargue
-      datos_completos: data || {},
+      venta_id:       req.body.venta_id || null,
+      uuid:           bill.cufe || factusRespuesta?.data?.cufe || null,
+      numero_factura: bill.number || factusRespuesta?.data?.number || null,
+      estado:         factusRespuesta?.status || "emitida",
+      cufe:           bill.cufe || factusRespuesta?.data?.cufe || null,
+      pdf_url:        bill.public_url || bill.pdf_url || null,
+      xml_url:        bill.xml_url || null,
+      datos_completos: factusRespuesta || {},
     };
 
-    // 3️⃣ Guardar en Supabase
-    const { error: supaError } = await supabase
+    console.log("📝 [FACTURAS] Datos a insertar en Supabase:", facturaData);
+
+    // 4️⃣ Guardar en Supabase
+    const { data: insertado, error: supaError } = await supabase
       .from("facturas")
-      .insert([facturaData]);
+      .insert([facturaData])
+      .select()
+      .single();
 
     if (supaError) {
-      console.error("❌ Error guardando factura en Supabase:", supaError.message);
+      console.error("❌ [FACTURAS] Error guardando en Supabase:", supaError.message);
+      console.error("Código error:", supaError.code);
+      console.error("Detalle:", supaError.details);
+      // No fallamos — la factura fue emitida en Factus, solo falló el guardado local
     } else {
-      console.log("🗄️ Factura registrada correctamente en Supabase");
+      console.log("🗄️ [FACTURAS] Guardada en Supabase con ID:", insertado?.id);
     }
 
-    // 4️⃣ Responder al frontend
+    // 5️⃣ Respuesta al frontend
     res.status(201).json({
-      mensaje: "Factura emitida correctamente",
+      mensaje:        "Factura emitida correctamente",
       numero_factura: facturaData.numero_factura,
-      estado: facturaData.estado,
-      cufe: facturaData.cufe,
-      respuesta: data,
+      estado:         facturaData.estado,
+      cufe:           facturaData.cufe,
+      pdf_url:        facturaData.pdf_url,
+      supabase_id:    insertado?.id || null,
+      respuesta:      factusRespuesta,
     });
+
   } catch (error) {
-    console.error(
-      "❌ Error emitiendo factura:",
-      error.response?.data || error.message
-    );
-    res.status(400).json({ error: error.response?.data || error.message });
+    const detalle = error.response?.data || error.message;
+    console.error("❌ [FACTURAS] Error general:", detalle);
+    res.status(400).json({ error: detalle });
   }
 }
 
-
-
-
+/**
+ * 📄 Descargar PDF de una factura
+ */
 export async function obtenerPdf(req, res) {
   try {
     const { number } = req.params;
     if (!number) {
-      return res.status(400).json({ error: "Debes proporcionar un número de factura válido." });
+      return res.status(400).json({ error: "Falta el número de factura." });
     }
 
-    console.log("➡️ Solicitando PDF desde Factus:", number);
-
+    console.log("➡️ [PDF] Solicitando número:", number);
     const factusResponse = await descargarPdf(number);
 
-    // 🔍 Imprimimos para ver la estructura real
-    console.log("📤 Estructura completa Factus PDF:", Object.keys(factusResponse || {}));
-    console.log("📤 Estructura factusResponse.data:", Object.keys(factusResponse.data || {}));
-
-    // 📦 Obtenemos el nivel correcto
-    const data =
-      factusResponse?.data?.data ||  // si viene anidado
-      factusResponse?.data ||        // si viene plano
-      factusResponse;                // último intento
-
-    console.log("📤 Respuesta completa de Factus PDF:", data);
-
-    // 🔑 Buscamos el campo que contenga el Base64
+    // Buscar el base64 en distintos niveles de la respuesta
+    const data = factusResponse?.data?.data || factusResponse?.data || factusResponse;
     const pdfBase64 =
       data?.pdf_base_64_encoded ||
-      data?.pdf_base64_encoded ||
-      data?.pdf_base64 ||
-      data?.pdf ||
+      data?.pdf_base64_encoded  ||
+      data?.pdf_base64          ||
+      data?.pdf                 ||
       data?.data?.pdf_base_64_encoded ||
-      data?.data?.pdf_base64_encoded ||
       null;
 
     if (!pdfBase64) {
-      console.error("❌ No se encontró el campo PDF base64 en la respuesta");
+      console.error("❌ [PDF] No se encontró base64. Estructura:", Object.keys(data || {}));
       return res.status(400).json({
-        error: "No se recibió el PDF desde Factus.",
+        error:     "No se recibió el PDF desde Factus.",
         estructura: Object.keys(data || {}),
       });
     }
 
-    console.log("✅ PDF base64 recibido correctamente.");
-
-    // 🧩 Convertimos a binario
     const pdfBuffer = Buffer.from(pdfBase64, "base64");
-
-    // 📤 Enviamos el archivo al cliente
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="Factura_${number}.pdf"`
-    );
+    res.setHeader("Content-Disposition", `attachment; filename="Factura_${number}.pdf"`);
     res.send(pdfBuffer);
 
-    console.log("✅ PDF enviado correctamente al cliente.");
+    console.log("✅ [PDF] Enviado correctamente.");
   } catch (error) {
-    console.error("❌ Error obteniendo PDF:", error.response?.data || error.message);
+    console.error("❌ [PDF] Error:", error.response?.data || error.message);
     res.status(400).json({ error: error.response?.data || error.message });
   }
 }
 
-
+/**
+ * 🧾 Descargar XML de una factura
+ */
 export async function obtenerXml(req, res) {
   try {
     const { number } = req.params;
     if (!number) {
-      return res.status(400).json({ error: "Debes proporcionar un número de factura válido." });
+      return res.status(400).json({ error: "Falta el número de factura." });
     }
 
-    console.log("➡️ Solicitando XML desde Factus:", number);
-
+    console.log("➡️ [XML] Solicitando número:", number);
     const factusResponse = await descargarXml(number);
 
-    // 🔍 Log para inspeccionar la estructura
-    console.log("📤 Estructura completa Factus XML:", Object.keys(factusResponse || {}));
-    console.log("📤 Estructura factusResponse.data:", Object.keys(factusResponse.data || {}));
-
-    // 📦 Obtenemos el objeto correcto
-    const data =
-      factusResponse?.data?.data ||
-      factusResponse?.data ||
-      factusResponse;
-
-    console.log("📤 Respuesta completa de Factus XML:", data);
-
-    // 🔑 Buscamos el campo correcto con el Base64
+    const data = factusResponse?.data?.data || factusResponse?.data || factusResponse;
     const xmlBase64 =
-      data?.xml_base64 ||
       data?.xml_base_64_encoded ||
-      data?.xml ||
-      data?.data?.xml_base64 ||
+      data?.xml_base64_encoded  ||
+      data?.xml_base64          ||
+      data?.xml                 ||
+      data?.data?.xml_base_64_encoded ||
       null;
 
     if (!xmlBase64) {
-      console.error("❌ No se encontró el campo XML base64 en la respuesta");
+      console.error("❌ [XML] No se encontró base64. Estructura:", Object.keys(data || {}));
       return res.status(400).json({
-        error: "No se recibió el XML desde Factus.",
+        error:     "No se recibió el XML desde Factus.",
         estructura: Object.keys(data || {}),
       });
     }
 
-    console.log("✅ XML base64 recibido correctamente.");
-
-    // 🧩 Convertimos a binario (UTF-8)
     const xmlBuffer = Buffer.from(xmlBase64, "base64");
-
-    // 📤 Enviamos al cliente como descarga
     res.setHeader("Content-Type", "application/xml");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="Factura_${number}.xml"`
-    );
+    res.setHeader("Content-Disposition", `attachment; filename="Factura_${number}.xml"`);
     res.send(xmlBuffer);
 
-    console.log("✅ XML enviado correctamente al cliente.");
+    console.log("✅ [XML] Enviado correctamente.");
   } catch (error) {
-    console.error("❌ Error obteniendo XML:", error.response?.data || error.message);
+    console.error("❌ [XML] Error:", error.response?.data || error.message);
     res.status(400).json({ error: error.response?.data || error.message });
   }
 }
