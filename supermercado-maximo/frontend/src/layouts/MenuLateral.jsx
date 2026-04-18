@@ -48,7 +48,7 @@ function MenuLateral() {
     <aside className="menu-lateral">
       {/* Logo */}
       <div className="menu-logo">
-        <span className="menu-logo-icon">🏪</span>
+        <span className="menu-logo-icon"></span>
         <div>
           <div className="menu-logo-nombre">Supermercado</div>
           <div className="menu-logo-nombre menu-logo-maximo">Máximo</div>
