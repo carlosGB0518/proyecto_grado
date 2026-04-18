@@ -127,7 +127,7 @@ const Caja = () => {
           anulada:    false,
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (ventaError) throw new Error('Error al guardar venta: ' + ventaError.message);
 
