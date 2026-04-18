@@ -17,7 +17,7 @@ const Inventario = () => {
   const { productos, cargarProductos, productosAlerta } = useContext(InventarioContexto);
 
   const [nuevoProducto, setNuevoProducto] = useState({
-    codigo: '', nombre: '', precio: '', stockActual: '', stockMinimo: '',
+    codigo: '', nombre: '', precio: '', stockactual: '', stockminimo: '',
   });
   const [proveedores, setProveedores]     = useState([]);
   const [proveedorId, setProveedorId]     = useState('');
@@ -55,8 +55,8 @@ const Inventario = () => {
   // ── Agregar / reactivar producto ───────────────────────────────────
   const manejarAgregar = async (e) => {
     e.preventDefault();
-    const { codigo, nombre, precio, stockActual, stockMinimo } = nuevoProducto;
-    if (!codigo || !nombre || !precio || stockActual === '' || stockMinimo === '') return;
+    const { codigo, nombre, precio, stockactual, stockminimo } = nuevoProducto;
+    if (!codigo || !nombre || !precio || stockactual === '' || stockminimo === '') return;
 
     // ¿Existe?
     const { data: existente } = await supabase
@@ -67,8 +67,8 @@ const Inventario = () => {
         // Reactivar
         await supabase.from('productos').update({
           nombre, precio: parseInt(precio),
-          stockActual: parseInt(stockActual),
-          stockMinimo: parseInt(stockMinimo),
+          stockactual: parseInt(stockactual),
+          stockminimo: parseInt(stockminimo),
           activo: true,
         }).eq('id', existente.id);
         cargarProductos();
@@ -82,8 +82,8 @@ const Inventario = () => {
     await supabase.from('productos').insert([{
       codigo, nombre,
       precio: parseInt(precio),
-      stockActual: parseInt(stockActual),
-      stockMinimo: parseInt(stockMinimo),
+      stockactual: parseInt(stockactual),
+      stockminimo: parseInt(stockminimo),
       proveedor_id: proveedorId || null,
       activo: true,
     }]);
@@ -104,8 +104,8 @@ const Inventario = () => {
     await supabase.from('productos').update({
       nombre:      nuevoProducto.nombre,
       precio:      parseInt(nuevoProducto.precio),
-      stockActual: parseInt(nuevoProducto.stockActual),
-      stockMinimo: parseInt(nuevoProducto.stockMinimo),
+      stockactual: parseInt(nuevoProducto.stockactual),
+      stockminimo: parseInt(nuevoProducto.stockminimo),
       proveedor_id: proveedorId || null,
     }).eq('id', modoEdicion);
     setModoEdicion(null);
@@ -120,7 +120,7 @@ const Inventario = () => {
   };
 
   const resetForm = () => {
-    setNuevoProducto({ codigo: '', nombre: '', precio: '', stockActual: '', stockMinimo: '' });
+    setNuevoProducto({ codigo: '', nombre: '', precio: '', stockactual: '', stockminimo: '' });
     setProveedorId('');
     setModoEdicion(null);
     if (inputCodigoRef.current) inputCodigoRef.current.focus();
@@ -139,14 +139,14 @@ const Inventario = () => {
 
     // ✅ BUG FIX: salida resta, entrada suma
     const nuevoStock = tipo === 'entrada'
-      ? producto.stockActual + cantidad
-      : producto.stockActual - cantidad;
+      ? producto.stockactual + cantidad
+      : producto.stockactual - cantidad;
 
     if (nuevoStock < 0) {
-      alert(`⚠️ Stock insuficiente. Stock actual: ${producto.stockActual}`); return;
+      alert(`⚠️ Stock insuficiente. Stock actual: ${producto.stockactual}`); return;
     }
 
-    await supabase.from('productos').update({ stockActual: nuevoStock }).eq('id', producto.id);
+    await supabase.from('productos').update({ stockactual: nuevoStock }).eq('id', producto.id);
     cargarProductos();
     setCodigoMovimiento('');
     setCantidadMovimiento('');
@@ -207,11 +207,11 @@ const Inventario = () => {
           <input type="number" name="precio"
             placeholder="Precio *" value={nuevoProducto.precio}
             onChange={manejarCambio} required min="0" />
-          <input type="number" name="stockActual"
-            placeholder="Stock actual *" value={nuevoProducto.stockActual}
+          <input type="number" name="stockactual"
+            placeholder="Stock actual *" value={nuevoProducto.stockactual}
             onChange={manejarCambio} required min="0" />
-          <input type="number" name="stockMinimo"
-            placeholder="Stock mínimo *" value={nuevoProducto.stockMinimo}
+          <input type="number" name="stockminimo"
+            placeholder="Stock mínimo *" value={nuevoProducto.stockminimo}
             onChange={manejarCambio} required min="0" />
           <select value={proveedorId} onChange={e => setProveedorId(e.target.value)}>
             <option value="">Sin proveedor</option>
@@ -282,11 +282,11 @@ const Inventario = () => {
                   <td style={{ fontFamily: 'monospace', fontSize: '0.82rem' }}>{p.codigo}</td>
                   <td style={{ fontWeight: 600 }}>{p.nombre}</td>
                   <td>${p.precio.toLocaleString('es-CO')}</td>
-                  <td className={p.stockActual < p.stockMinimo ? 'stock-bajo' : 'stock-ok'}>
-                    {p.stockActual}
-                    {p.stockActual < p.stockMinimo && ' ⚠️'}
+                  <td className={p.stockactual < p.stockminimo ? 'stock-bajo' : 'stock-ok'}>
+                    {p.stockactual}
+                    {p.stockactual < p.stockminimo && ' ⚠️'}
                   </td>
-                  <td>{p.stockMinimo}</td>
+                  <td>{p.stockminimo}</td>
                   <td>{p.proveedor?.nombre || '—'}</td>
                   <td>
                     <button className="btn-editar" onClick={() => manejarEditar(p)} title="Editar">✏️</button>

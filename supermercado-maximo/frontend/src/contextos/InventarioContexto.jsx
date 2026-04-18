@@ -23,7 +23,7 @@ export const InventarioProvider = ({ children }) => {
       .from('productos')
       .select(`
         id, codigo, nombre, precio,
-        stockActual, stockMinimo,
+        stockactual, stockminimo,
         proveedor_id, activo,
         proveedor:proveedor_id(nombre)
       `)
@@ -33,7 +33,7 @@ export const InventarioProvider = ({ children }) => {
     if (!error && data) {
       setProductos(data);
       // Alertas de stock bajo
-      setProductosAlerta(data.filter(p => p.stockActual < p.stockMinimo));
+      setProductosAlerta(data.filter(p => p.stockactual < p.stockminimo));
       setUltima(new Date());
     } else if (error) {
       console.error('InventarioContexto: error cargando productos:', error.message);
@@ -59,7 +59,7 @@ export const InventarioProvider = ({ children }) => {
               // Si el producto se desactivó, sacarlo de la lista
               if (!nuevo.activo) {
                 const filtrado = prev.filter(p => p.id !== nuevo.id);
-                setProductosAlerta(filtrado.filter(p => p.stockActual < p.stockMinimo));
+                setProductosAlerta(filtrado.filter(p => p.stockactual < p.stockminimo));
                 return filtrado;
               }
               // Si ya existe, actualizar; si no existe, agregar
@@ -67,7 +67,7 @@ export const InventarioProvider = ({ children }) => {
               const lista = existe
                 ? prev.map(p => p.id === nuevo.id ? { ...p, ...nuevo } : p)
                 : [...prev, nuevo];
-              setProductosAlerta(lista.filter(p => p.stockActual < p.stockMinimo));
+              setProductosAlerta(lista.filter(p => p.stockactual < p.stockminimo));
               setUltima(new Date());
               return lista;
             });
