@@ -1,29 +1,181 @@
-.tabla-facturas {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
+/* ===== FACTURACIÓN — Supermercado Máximo ===== */
+
+.facturacion-container {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.tabla-facturas th,
-.tabla-facturas td {
-  border: 1px solid #ddd;
-  padding: 0.75rem;
+.facturacion-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.facturacion-titulo {
+  font-family: var(--fuente-titulo);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-oscuro);
+  margin-bottom: 0.3rem;
+}
+
+.facturacion-subtitulo {
+  font-size: 0.88rem;
+  color: var(--color-texto-suave);
+  max-width: 500px;
+  line-height: 1.5;
+}
+
+/* ===== STATS ===== */
+.facturacion-stats {
+  display: flex;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.fact-stat {
+  background: var(--color-blanco);
+  border-radius: var(--radio);
+  padding: 0.9rem 1.25rem;
+  box-shadow: var(--sombra-card);
   text-align: center;
+  min-width: 90px;
 }
 
-.tabla-facturas th {
-  background-color: #f2f2f2;
+.fact-stat-valor {
+  display: block;
+  font-family: var(--fuente-titulo);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-verde);
+  line-height: 1;
+  margin-bottom: 0.2rem;
 }
 
-button {
-  padding: 0.4rem 0.7rem;
-  background-color: #3498db;
-  color: white;
-  border: none;
+.fact-stat-label {
+  font-size: 0.72rem;
+  color: var(--color-texto-suave);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ===== TABLA ===== */
+.facturacion-tabla-wrapper {
+  overflow-x: auto;
+}
+
+.facturacion-estado {
+  padding: 3rem;
+  text-align: center;
+  color: var(--color-texto-suave);
+  font-size: 0.9rem;
+}
+
+.fact-id {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  color: var(--color-texto-suave);
+  font-size: 0.85rem;
+}
+
+.fact-numero {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  background: rgba(46,125,50,0.07);
+  color: var(--color-verde);
+  padding: 2px 8px;
   border-radius: 4px;
-  cursor: pointer;
+  font-weight: 600;
 }
 
-button:hover {
-  background-color: #2980b9;
+.fact-fecha {
+  font-size: 0.82rem;
+  color: var(--color-texto-suave);
+  white-space: nowrap;
+}
+
+.fact-sin-numero {
+  font-size: 0.8rem;
+  color: var(--color-texto-suave);
+  font-style: italic;
+}
+
+/* ===== BADGES ===== */
+.fact-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: capitalize;
+}
+
+.fact-badge-emitida {
+  background: rgba(46,125,50,0.1);
+  color: var(--color-verde);
+  border: 1px solid rgba(46,125,50,0.25);
+}
+
+.fact-badge-pendiente {
+  background: rgba(253,216,53,0.2);
+  color: #795548;
+  border: 1px solid rgba(253,216,53,0.4);
+}
+
+.fact-badge-error {
+  background: rgba(229,57,53,0.08);
+  color: var(--color-rojo);
+  border: 1px solid rgba(229,57,53,0.25);
+}
+
+/* ===== BOTONES DESCARGA ===== */
+.fact-acciones {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.fact-btn-pdf,
+.fact-btn-xml {
+  font-size: 0.78rem;
+  font-family: var(--fuente-cuerpo);
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: var(--radio-sm);
+  cursor: pointer;
+  transition: var(--transicion);
+  border: 1.5px solid;
+  white-space: nowrap;
+}
+
+.fact-btn-pdf {
+  border-color: var(--color-rojo);
+  color: var(--color-rojo);
+  background: transparent;
+}
+
+.fact-btn-pdf:hover:not(:disabled) {
+  background: var(--color-rojo);
+  color: var(--color-blanco);
+}
+
+.fact-btn-xml {
+  border-color: var(--color-verde);
+  color: var(--color-verde);
+  background: transparent;
+}
+
+.fact-btn-xml:hover:not(:disabled) {
+  background: var(--color-verde);
+  color: var(--color-blanco);
+}
+
+.fact-btn-pdf:disabled,
+.fact-btn-xml:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

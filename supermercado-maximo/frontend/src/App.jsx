@@ -1,86 +1,88 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
-import RutaPrivada from './componentes/RutaPrivada';
-
-import Login from './paginas/Login';
-import Inicio from './paginas/Inicio';
-import Caja from './paginas/Caja';
-import Inventario from './paginas/Inventario';
-import Facturacion from './paginas/Facturacion';
-import Proveedores from './paginas/Proveedores';
-import Pedidos from './paginas/Pedidos';
-import Ventas from './paginas/Ventas';
-import Clientes from './paginas/Clientes';
-import GestionUsuarios from './paginas/GestionUsuarios';
+import RutaPrivada      from './componentes/RutaPrivada';
+import Login            from './paginas/Login';
+import Inicio           from './paginas/Inicio';
+import Caja             from './paginas/Caja';
+import ControlCaja      from './paginas/ControlCaja';
+import Inventario       from './paginas/Inventario';
+import Facturacion      from './paginas/Facturacion';
+import Proveedores      from './paginas/Proveedores';
+import Pedidos          from './paginas/Pedidos';
+import Ventas           from './paginas/Ventas';
+import Clientes         from './paginas/Clientes';
+import Reportes         from './paginas/Reportes';
+import GestionUsuarios  from './paginas/GestionUsuarios';
 
 function App() {
   return (
     <Routes>
-      {/* Pública */}
+      {/* ── Pública ─────────────────────────────────── */}
       <Route path="/login" element={<Login />} />
 
-      {/* Todos los roles autenticados */}
+      {/* ── Todos los roles autenticados ────────────── */}
       <Route path="/" element={
-        <RutaPrivada>
-          <Inicio />
-        </RutaPrivada>
+        <RutaPrivada><Inicio /></RutaPrivada>
       } />
 
-      {/* CAJERO + SUPERVISOR + ADMINISTRADOR */}
+      {/* ── CAJERO · SUPERVISOR · ADMINISTRADOR ─────── */}
       <Route path="/caja" element={
-        <RutaPrivada roles={['cajero', 'supervisor', 'administrador']}>
+        <RutaPrivada roles={['cajero','supervisor','administrador']}>
           <Caja />
         </RutaPrivada>
       } />
-
-      {/* CAJERO + SUPERVISOR + ADMINISTRADOR */}
+      <Route path="/control-caja" element={
+        <RutaPrivada roles={['cajero','supervisor','administrador']}>
+          <ControlCaja />
+        </RutaPrivada>
+      } />
       <Route path="/clientes" element={
-        <RutaPrivada roles={['cajero', 'supervisor', 'administrador']}>
+        <RutaPrivada roles={['cajero','supervisor','administrador']}>
           <Clientes />
         </RutaPrivada>
       } />
-
-      {/* CAJERO + SUPERVISOR + ADMINISTRADOR */}
       <Route path="/facturacion" element={
-        <RutaPrivada roles={['cajero', 'supervisor', 'administrador']}>
+        <RutaPrivada roles={['cajero','supervisor','administrador']}>
           <Facturacion />
         </RutaPrivada>
       } />
 
-      {/* SUPERVISOR + ADMINISTRADOR */}
+      {/* ── SUPERVISOR · ADMINISTRADOR ──────────────── */}
       <Route path="/ventas" element={
-        <RutaPrivada roles={['supervisor', 'administrador']}>
+        <RutaPrivada roles={['supervisor','administrador']}>
           <Ventas />
         </RutaPrivada>
       } />
+      <Route path="/reportes" element={
+        <RutaPrivada roles={['supervisor','administrador']}>
+          <Reportes />
+        </RutaPrivada>
+      } />
 
-      {/* ADMINISTRADOR */}
+      {/* ── ADMINISTRADOR ───────────────────────────── */}
       <Route path="/inventario" element={
         <RutaPrivada roles={['administrador']}>
           <Inventario />
         </RutaPrivada>
       } />
-
-      {/* ADMINISTRADOR */}
       <Route path="/proveedores" element={
         <RutaPrivada roles={['administrador']}>
           <Proveedores />
         </RutaPrivada>
       } />
-
-      {/* ADMINISTRADOR */}
       <Route path="/pedidos" element={
         <RutaPrivada roles={['administrador']}>
           <Pedidos />
         </RutaPrivada>
       } />
-
-      {/* ADMINISTRADOR — gestión de usuarios */}
       <Route path="/usuarios" element={
         <RutaPrivada roles={['administrador']}>
           <GestionUsuarios />
         </RutaPrivada>
       } />
+
+      {/* ── Comodín: cualquier ruta desconocida → login ─ */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }

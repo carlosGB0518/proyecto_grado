@@ -14,7 +14,6 @@
   z-index: 100;
 }
 
-/* ===== LOGO ===== */
 .menu-logo {
   display: flex;
   align-items: center;
@@ -23,9 +22,7 @@
   border-bottom: 1px solid rgba(255,255,255,0.15);
 }
 
-.menu-logo-icon {
-  font-size: 1.8rem;
-}
+.menu-logo-icon { font-size: 1.8rem; }
 
 .menu-logo-nombre {
   font-family: var(--fuente-titulo);
@@ -89,8 +86,27 @@
   text-align: center;
 }
 
-.menu-etiqueta {
-  flex: 1;
+.menu-etiqueta { flex: 1; }
+
+/* ===== BADGE ALERTA ===== */
+.menu-alerta-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-rojo);
+  color: var(--color-blanco);
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  animation: pulso 2s ease-in-out infinite;
+}
+
+@keyframes pulso {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.15); }
 }
 
 /* ===== FOOTER ===== */
@@ -109,38 +125,16 @@
     min-width: unset;
     height: auto;
     flex-direction: row;
-    align-items: center;
     position: sticky;
     top: 0;
     z-index: 200;
     overflow-x: auto;
     overflow-y: hidden;
   }
-
-  .menu-logo {
-    display: none;
-  }
-
-  .menu-nav {
-    padding: 0.5rem;
-  }
-
-  .menu-nav ul {
-    flex-direction: row;
-    gap: 0.25rem;
-    white-space: nowrap;
-  }
-
-  .menu-link {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8rem;
-  }
-
-  .menu-etiqueta {
-    display: none;
-  }
-
-  .menu-footer {
-    display: none;
-  }
+  .menu-logo    { display: none; }
+  .menu-nav     { padding: 0.5rem; }
+  .menu-nav ul  { flex-direction: row; gap: 0.25rem; white-space: nowrap; }
+  .menu-link    { padding: 0.5rem 0.75rem; font-size: 0.8rem; }
+  .menu-etiqueta{ display: none; }
+  .menu-footer  { display: none; }
 }

@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import LayoutBase from '../layouts/LayoutBase';
 import { supabase } from '../supabase';
 import { UsuarioContexto } from '../contextos/UsuarioContexto';
+import { AlertaStockPanel } from '../componentes/AlertaStock';
 import '../estilos/inicio.css';
 
 const saludosPorRol = {
@@ -16,47 +17,47 @@ const Inicio = () => {
     ventasDelDia: 0,
     productosStockBajo: 0,
     clientesRegistrados: 0,
+    cajasAbiertas: 0,
     cargando: true,
   });
 
+  useEffect(() => { cargarEstadisticas(); }, []);
+
+  // Realtime: actualizar ventas del día automáticamente
   useEffect(() => {
-    cargarEstadisticas();
+    const canal = supabase
+      .channel('realtime:inicio:ventas')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ventas' }, () => {
+        cargarEstadisticas();
+      })
+      .subscribe();
+    return () => supabase.removeChannel(canal);
   }, []);
 
   const cargarEstadisticas = async () => {
-    setEstadisticas((prev) => ({ ...prev, cargando: true }));
-
+    setEstadisticas(prev => ({ ...prev, cargando: true }));
     try {
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
+      const hoy = new Date(); hoy.setHours(0,0,0,0);
 
-      const { data: ventas } = await supabase
-        .from('ventas')
-        .select('total')
-        .gte('fecha', hoy.toISOString());
+      const [ventasRes, productosRes, clientesRes, cajasRes] = await Promise.all([
+        supabase.from('ventas').select('total').gte('fecha', hoy.toISOString()).eq('anulada', false),
+        supabase.from('productos').select('stockActual, stockMinimo').eq('activo', true),
+        supabase.from('clientes').select('*', { count: 'exact', head: true }),
+        supabase.from('caja_sesiones').select('id', { count: 'exact', head: true }).eq('estado', 'abierta'),
+      ]);
 
-      const totalVentas = ventas?.reduce((sum, v) => sum + (v.total || 0), 0) || 0;
-
-      const { data: todosProductos } = await supabase
-        .from('productos')
-        .select('id, stockActual, stockMinimo');
-
-      const productosStockBajo = todosProductos?.filter(
-        (p) => p.stockActual < p.stockMinimo
-      ).length || 0;
-
-      const { count: totalClientes } = await supabase
-        .from('clientes')
-        .select('*', { count: 'exact', head: true });
+      const totalVentas   = ventasRes.data?.reduce((s, v) => s + (v.total || 0), 0) || 0;
+      const stockBajo     = productosRes.data?.filter(p => p.stockActual < p.stockMinimo).length || 0;
 
       setEstadisticas({
-        ventasDelDia: totalVentas,
-        productosStockBajo,
-        clientesRegistrados: totalClientes || 0,
+        ventasDelDia:       totalVentas,
+        productosStockBajo: stockBajo,
+        clientesRegistrados: clientesRes.count || 0,
+        cajasAbiertas:       cajasRes.count || 0,
         cargando: false,
       });
     } catch {
-      setEstadisticas({ ventasDelDia: 0, productosStockBajo: 0, clientesRegistrados: 0, cargando: false });
+      setEstadisticas(p => ({ ...p, cargando: false }));
     }
   };
 
@@ -65,6 +66,9 @@ const Inicio = () => {
   return (
     <LayoutBase>
       <div className="inicio-container">
+        {/* Alerta stock bajo */}
+        <AlertaStockPanel />
+
         {/* Bienvenida */}
         <div className="inicio-bienvenida">
           <div>
@@ -72,7 +76,7 @@ const Inicio = () => {
               Bienvenido, {usuario?.nombre?.split(' ')[0] || 'Usuario'} 👋
             </h1>
             <p className="inicio-parrafo">
-              {panelLabel} · Usa el menú lateral para navegar entre los módulos disponibles.
+              {panelLabel} · {new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </div>
           <button
@@ -89,27 +93,28 @@ const Inicio = () => {
           <div className="tarjeta">
             <p className="tarjeta-titulo">💰 Ventas del Día</p>
             <p className="tarjeta-dato ventas">
-              {estadisticas.cargando
-                ? '—'
-                : `$${estadisticas.ventasDelDia.toLocaleString('es-CO')}`}
+              {estadisticas.cargando ? '—' : `$${estadisticas.ventasDelDia.toLocaleString('es-CO')}`}
             </p>
           </div>
 
           <div className="tarjeta">
-            <p className="tarjeta-titulo">📦 Productos con Stock Bajo</p>
+            <p className="tarjeta-titulo">📦 Stock Bajo</p>
             <p className="tarjeta-dato stock">
-              {estadisticas.cargando
-                ? '—'
-                : `${estadisticas.productosStockBajo} producto${estadisticas.productosStockBajo !== 1 ? 's' : ''}`}
+              {estadisticas.cargando ? '—' : `${estadisticas.productosStockBajo} producto${estadisticas.productosStockBajo !== 1 ? 's' : ''}`}
             </p>
           </div>
 
           <div className="tarjeta">
-            <p className="tarjeta-titulo">👥 Clientes Registrados</p>
+            <p className="tarjeta-titulo">👥 Clientes</p>
             <p className="tarjeta-dato clientes">
-              {estadisticas.cargando
-                ? '—'
-                : `${estadisticas.clientesRegistrados} cliente${estadisticas.clientesRegistrados !== 1 ? 's' : ''}`}
+              {estadisticas.cargando ? '—' : `${estadisticas.clientesRegistrados}`}
+            </p>
+          </div>
+
+          <div className="tarjeta">
+            <p className="tarjeta-titulo">🏧 Cajas Abiertas</p>
+            <p className="tarjeta-dato" style={{ color: estadisticas.cajasAbiertas > 0 ? 'var(--color-verde)' : 'var(--color-texto-suave)' }}>
+              {estadisticas.cargando ? '—' : `${estadisticas.cajasAbiertas}`}
             </p>
           </div>
         </div>

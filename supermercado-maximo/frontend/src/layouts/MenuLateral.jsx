@@ -1,38 +1,44 @@
 import { useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { UsuarioContexto } from '../contextos/UsuarioContexto';
+import { InventarioContexto } from '../contextos/InventarioContexto';
 import '../estilos/menulateral.css';
 
-// Definición de módulos por rol
 const modulosPorRol = {
   cajero: [
-    { ruta: '/',           etiqueta: 'Inicio',       icono: '🏠' },
-    { ruta: '/caja',       etiqueta: 'Caja',         icono: '🛒' },
-    { ruta: '/clientes',   etiqueta: 'Clientes',     icono: '👥' },
-    { ruta: '/facturacion',etiqueta: 'Facturación',  icono: '🧾' },
+    { ruta: '/',            etiqueta: 'Inicio',       icono: '🏠' },
+    { ruta: '/caja',        etiqueta: 'Caja',         icono: '🛒' },
+    { ruta: '/control-caja',etiqueta: 'Control Caja', icono: '💰' },
+    { ruta: '/clientes',    etiqueta: 'Clientes',     icono: '👥' },
+    { ruta: '/facturacion', etiqueta: 'Facturación',  icono: '🧾' },
   ],
   supervisor: [
-    { ruta: '/',           etiqueta: 'Inicio',       icono: '🏠' },
-    { ruta: '/caja',       etiqueta: 'Caja',         icono: '🛒' },
-    { ruta: '/clientes',   etiqueta: 'Clientes',     icono: '👥' },
-    { ruta: '/facturacion',etiqueta: 'Facturación',  icono: '🧾' },
-    { ruta: '/ventas',     etiqueta: 'Ventas',       icono: '📊' },
+    { ruta: '/',            etiqueta: 'Inicio',       icono: '🏠' },
+    { ruta: '/caja',        etiqueta: 'Caja',         icono: '🛒' },
+    { ruta: '/control-caja',etiqueta: 'Control Caja', icono: '💰' },
+    { ruta: '/clientes',    etiqueta: 'Clientes',     icono: '👥' },
+    { ruta: '/facturacion', etiqueta: 'Facturación',  icono: '🧾' },
+    { ruta: '/ventas',      etiqueta: 'Ventas',       icono: '📊' },
+    { ruta: '/reportes',    etiqueta: 'Reportes',     icono: '📈' },
   ],
   administrador: [
-    { ruta: '/',           etiqueta: 'Inicio',       icono: '🏠' },
-    { ruta: '/caja',       etiqueta: 'Caja',         icono: '🛒' },
-    { ruta: '/clientes',   etiqueta: 'Clientes',     icono: '👥' },
-    { ruta: '/facturacion',etiqueta: 'Facturación',  icono: '🧾' },
-    { ruta: '/ventas',     etiqueta: 'Ventas',       icono: '📊' },
-    { ruta: '/inventario', etiqueta: 'Inventario',   icono: '📦' },
-    { ruta: '/proveedores',etiqueta: 'Proveedores',  icono: '🏭' },
-    { ruta: '/pedidos',    etiqueta: 'Pedidos',      icono: '📋' },
-    { ruta: '/usuarios',   etiqueta: 'Usuarios',     icono: '⚙️' },
+    { ruta: '/',            etiqueta: 'Inicio',       icono: '🏠' },
+    { ruta: '/caja',        etiqueta: 'Caja',         icono: '🛒' },
+    { ruta: '/control-caja',etiqueta: 'Control Caja', icono: '💰' },
+    { ruta: '/clientes',    etiqueta: 'Clientes',     icono: '👥' },
+    { ruta: '/facturacion', etiqueta: 'Facturación',  icono: '🧾' },
+    { ruta: '/ventas',      etiqueta: 'Ventas',       icono: '📊' },
+    { ruta: '/reportes',    etiqueta: 'Reportes',     icono: '📈' },
+    { ruta: '/inventario',  etiqueta: 'Inventario',   icono: '📦', alerta: true },
+    { ruta: '/proveedores', etiqueta: 'Proveedores',  icono: '🏭' },
+    { ruta: '/pedidos',     etiqueta: 'Pedidos',      icono: '📋' },
+    { ruta: '/usuarios',    etiqueta: 'Usuarios',     icono: '⚙️' },
   ],
 };
 
 function MenuLateral() {
   const { usuario } = useContext(UsuarioContexto);
+  const { productosAlerta } = useContext(InventarioContexto);
   const location = useLocation();
 
   const rol = usuario?.rol || 'cajero';
@@ -40,7 +46,7 @@ function MenuLateral() {
 
   return (
     <aside className="menu-lateral">
-      {/* Logo / Marca */}
+      {/* Logo */}
       <div className="menu-logo">
         <span className="menu-logo-icon">🏪</span>
         <div>
@@ -54,6 +60,7 @@ function MenuLateral() {
         <ul>
           {modulos.map((mod) => {
             const activo = location.pathname === mod.ruta;
+            const tieneAlerta = mod.alerta && productosAlerta?.length > 0;
             return (
               <li key={mod.ruta}>
                 <Link
@@ -62,6 +69,11 @@ function MenuLateral() {
                 >
                   <span className="menu-icono">{mod.icono}</span>
                   <span className="menu-etiqueta">{mod.etiqueta}</span>
+                  {tieneAlerta && (
+                    <span className="menu-alerta-badge">
+                      {productosAlerta.length > 9 ? '9+' : productosAlerta.length}
+                    </span>
+                  )}
                 </Link>
               </li>
             );
@@ -69,7 +81,6 @@ function MenuLateral() {
         </ul>
       </nav>
 
-      {/* Versión */}
       <div className="menu-footer">
         <small>v1.0.0 · POS Máximo</small>
       </div>

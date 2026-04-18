@@ -8,12 +8,12 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useContext(UsuarioContexto);
   const [formData, setFormData] = useState({ correo: '', password: '' });
-  const [error, setError] = useState('');
+  const [error, setError]       = useState('');
   const [cargando, setCargando] = useState(false);
 
-  const manejarCambio = (e) => {
+  const manejarCambio = e => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(p => ({ ...p, [name]: value }));
   };
 
   const manejarLogin = async (e) => {
@@ -23,26 +23,23 @@ const Login = () => {
 
     const { correo, password } = formData;
 
-    // 1️⃣ Autenticar con Supabase Auth
+    // 1. Autenticar con Supabase Auth
     const { data, error: loginError } = await supabase.auth.signInWithPassword({
-      email: correo,
-      password,
+      email: correo, password,
     });
 
     if (loginError) {
-      setError('Credenciales inválidas o usuario no registrado.');
-      setCargando(false);
-      return;
+      setError('Credenciales inválidas. Verifica tu correo y contraseña.');
+      setCargando(false); return;
     }
 
     const user = data?.user;
     if (!user) {
       setError('No se pudo obtener el usuario.');
-      setCargando(false);
-      return;
+      setCargando(false); return;
     }
 
-    // 2️⃣ Obtener datos del usuario desde la tabla personalizada (incluye rol)
+    // 2. Obtener rol y datos desde la tabla usuarios
     const { data: usuarioData, error: consultaError } = await supabase
       .from('usuarios')
       .select('id, nombre, correo, rol, activo')
@@ -50,26 +47,24 @@ const Login = () => {
       .single();
 
     if (consultaError || !usuarioData) {
-      setError('No se encontró el perfil de usuario. Contacte al administrador.');
+      setError('Perfil de usuario no encontrado. Contacta al administrador.');
       await supabase.auth.signOut();
-      setCargando(false);
-      return;
+      setCargando(false); return;
     }
 
-    // 3️⃣ Verificar que el usuario esté activo
+    // 3. Verificar que esté activo
     if (usuarioData.activo === false) {
       setError('Tu cuenta está desactivada. Contacta al administrador.');
       await supabase.auth.signOut();
-      setCargando(false);
-      return;
+      setCargando(false); return;
     }
 
-    // 4️⃣ Guardar en contexto con el rol real
+    // 4. Guardar sesión con rol real
     login({
-      id: usuarioData.id,
+      id:     usuarioData.id,
       nombre: usuarioData.nombre || correo,
       correo: usuarioData.correo || correo,
-      rol: usuarioData.rol || 'cajero',
+      rol:    usuarioData.rol || 'cajero',
     });
 
     navigate('/');
@@ -78,10 +73,13 @@ const Login = () => {
 
   return (
     <div className="login-page">
+      {/* Panel izquierdo — marca */}
       <div className="login-panel-izq">
         <div className="login-marca">
           <div className="login-logo-icono">🏪</div>
-          <h1 className="login-marca-nombre">Supermercado<br /><span>Máximo</span></h1>
+          <h1 className="login-marca-nombre">
+            Supermercado<br /><span>Máximo</span>
+          </h1>
           <p className="login-marca-slogan">Sistema de Gestión Comercial</p>
         </div>
         <div className="login-decoracion">
@@ -91,52 +89,45 @@ const Login = () => {
         </div>
       </div>
 
+      {/* Panel derecho — formulario */}
       <div className="login-panel-der">
         <div className="login-card">
           <div className="login-card-header">
             <h2 className="login-titulo">Bienvenido</h2>
-            <p className="login-subtitulo">Ingresa tus credenciales para acceder al sistema</p>
+            <p className="login-subtitulo">
+              Ingresa tus credenciales para acceder al sistema POS.
+            </p>
           </div>
 
           <form className="login-form" onSubmit={manejarLogin}>
             <div className="login-campo">
               <label className="login-label">Correo electrónico</label>
               <input
-                type="email"
-                name="correo"
+                type="email" name="correo"
                 placeholder="usuario@supermercado.com"
                 className="login-input"
                 value={formData.correo}
                 onChange={manejarCambio}
-                required
-                autoComplete="email"
+                required autoComplete="email"
               />
             </div>
 
             <div className="login-campo">
               <label className="login-label">Contraseña</label>
               <input
-                type="password"
-                name="password"
+                type="password" name="password"
                 placeholder="••••••••"
                 className="login-input"
                 value={formData.password}
                 onChange={manejarCambio}
-                required
-                autoComplete="current-password"
+                required autoComplete="current-password"
               />
             </div>
 
-            {error && (
-              <div className="alerta-error">{error}</div>
-            )}
+            {error && <div className="alerta-error">{error}</div>}
 
             <button type="submit" className="login-boton" disabled={cargando}>
-              {cargando ? (
-                <span className="login-cargando">Verificando...</span>
-              ) : (
-                'Ingresar al sistema'
-              )}
+              {cargando ? 'Verificando...' : 'Ingresar al sistema'}
             </button>
           </form>
 

@@ -83,3 +83,6 @@
 .ventas  { color: var(--color-verde); }
 .stock   { color: var(--color-rojo); }
 .clientes{ color: var(--color-amarillo-hover); }
+
+/* 4ª tarjeta — Cajas abiertas */
+.tarjeta:nth-child(4) { border-top-color: var(--color-verde-claro); }

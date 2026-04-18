@@ -1,75 +1,117 @@
-import { createContext, useEffect, useState } from 'react';
-import { supabase } from '../supabase'; // 👈 asegúrate de que la ruta sea correcta
+/**
+ * InventarioContexto — Supermercado Máximo
+ *
+ * Mantiene los productos en tiempo real usando Supabase Realtime.
+ * Cualquier cambio en la tabla 'productos' (desde Inventario, otra
+ * pestaña o sesión) se refleja automáticamente en Caja y demás páginas
+ * sin necesidad de recargar.
+ */
+import { createContext, useEffect, useState, useCallback } from 'react';
+import { supabase } from '../supabase';
 
 export const InventarioContexto = createContext();
 
 export const InventarioProvider = ({ children }) => {
-  const [productos, setProductos] = useState([]);
-  const [cargando, setCargando] = useState(true);
+  const [productos, setProductos]         = useState([]);
+  const [productosAlerta, setProductosAlerta] = useState([]); // stock bajo
+  const [cargando, setCargando]           = useState(true);
+  const [ultimaActualizacion, setUltima]  = useState(null);
 
-  // 🔹 Cargar productos desde Supabase al inicio
+  // ─── Carga principal ───────────────────────────────────────────────
+  const cargarProductos = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('productos')
+      .select(`
+        id, codigo, nombre, precio,
+        stockActual, stockMinimo,
+        proveedor_id, activo,
+        proveedor:proveedor_id(nombre)
+      `)
+      .eq('activo', true)
+      .order('nombre');
+
+    if (!error && data) {
+      setProductos(data);
+      // Alertas de stock bajo
+      setProductosAlerta(data.filter(p => p.stockActual < p.stockMinimo));
+      setUltima(new Date());
+    } else if (error) {
+      console.error('InventarioContexto: error cargando productos:', error.message);
+    }
+    setCargando(false);
+  }, []);
+
+  // ─── Realtime ──────────────────────────────────────────────────────
   useEffect(() => {
-    const cargarProductos = async () => {
-      const { data, error } = await supabase.from('productos').select('*');
-      if (error) {
-        console.error('Error al cargar productos desde Supabase:', error.message);
-      } else {
-        setProductos(data);
-      }
-      setCargando(false);
-    };
-
     cargarProductos();
 
-    // 🔹 Suscribirse a cambios en tiempo real en la tabla 'productos'
     const canal = supabase
-      .channel('realtime:productos')
+      .channel('realtime:inventario:global')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'productos' },
         (payload) => {
-          console.log('Cambio detectado en productos:', payload);
-          cargarProductos();
+          // Actualizamos sin hacer un fetch completo para eventos
+          // simples, y hacemos fetch completo para inserts/deletes
+          if (payload.eventType === 'UPDATE') {
+            setProductos(prev => {
+              const nuevo = payload.new;
+              // Si el producto se desactivó, sacarlo de la lista
+              if (!nuevo.activo) {
+                const filtrado = prev.filter(p => p.id !== nuevo.id);
+                setProductosAlerta(filtrado.filter(p => p.stockActual < p.stockMinimo));
+                return filtrado;
+              }
+              // Si ya existe, actualizar; si no existe, agregar
+              const existe = prev.find(p => p.id === nuevo.id);
+              const lista = existe
+                ? prev.map(p => p.id === nuevo.id ? { ...p, ...nuevo } : p)
+                : [...prev, nuevo];
+              setProductosAlerta(lista.filter(p => p.stockActual < p.stockMinimo));
+              setUltima(new Date());
+              return lista;
+            });
+          } else {
+            // INSERT o DELETE → recarga completa para tener datos frescos
+            cargarProductos();
+          }
         }
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(canal);
-    };
-  }, []);
+    return () => { supabase.removeChannel(canal); };
+  }, [cargarProductos]);
 
-  // 🔹 Funciones CRUD (opcional, puedes usarlas luego si quieres manejar cambios desde React)
+  // ─── CRUD helpers (opcionales, para uso desde páginas) ─────────────
   const agregarProducto = async (producto) => {
-    const { error } = await supabase.from('productos').insert([producto]);
-    if (error) console.error('Error agregando producto:', error.message);
+    const { error } = await supabase.from('productos').insert([{ ...producto, activo: true }]);
+    if (error) throw error;
+    // El canal Realtime actualizará automáticamente
   };
 
-  const editarProducto = async (id, datosActualizados) => {
-    const { error } = await supabase
-      .from('productos')
-      .update(datosActualizados)
-      .eq('id', id);
-    if (error) console.error('Error actualizando producto:', error.message);
+  const editarProducto = async (id, datos) => {
+    const { error } = await supabase.from('productos').update(datos).eq('id', id);
+    if (error) throw error;
   };
 
   const eliminarProducto = async (id) => {
-    const { error } = await supabase.from('productos').delete().eq('id', id);
-    if (error) console.error('Error eliminando producto:', error.message);
+    // Eliminación lógica
+    const { error } = await supabase.from('productos').update({ activo: false }).eq('id', id);
+    if (error) throw error;
   };
 
   return (
-    <InventarioContexto.Provider
-      value={{
-        productos,
-        cargando,
-        agregarProducto,
-        editarProducto,
-        eliminarProducto,
-      }}
-    >
+    <InventarioContexto.Provider value={{
+      productos,
+      productosAlerta,
+      cargando,
+      ultimaActualizacion,
+      cargarProductos,
+      agregarProducto,
+      editarProducto,
+      eliminarProducto,
+    }}>
       {children}
     </InventarioContexto.Provider>
   );
 };
-

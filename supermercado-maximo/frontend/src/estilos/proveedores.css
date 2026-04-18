@@ -1,0 +1,163 @@
+/* ===== PROVEEDORES — Supermercado Máximo ===== */
+
+.prov-container {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.prov-page-header {
+  margin-bottom: 1.5rem;
+}
+
+.prov-titulo {
+  font-family: var(--fuente-titulo);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-oscuro);
+  margin-bottom: 0.3rem;
+}
+
+.prov-subtitulo {
+  font-size: 0.88rem;
+  color: var(--color-texto-suave);
+}
+
+/* ===== FORMULARIO ===== */
+.prov-form-card {
+  margin-bottom: 1.5rem;
+}
+
+.prov-form-titulo {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-verde);
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-gris-borde);
+}
+
+.prov-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.prov-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.prov-campo label {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--color-texto);
+}
+
+.prov-campo-full {
+  grid-column: 1 / -1;
+}
+
+.prov-form-acciones {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* ===== LISTA ===== */
+.prov-lista-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-gris-borde);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.prov-busqueda-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  background: var(--color-gris);
+  border: 1.5px solid var(--color-gris-borde);
+  border-radius: var(--radio-sm);
+  padding: 0 0.75rem;
+  max-width: 380px;
+}
+
+.prov-busqueda {
+  border: none;
+  background: transparent;
+  padding: 0.6rem 0;
+  font-size: 0.88rem;
+  font-family: var(--fuente-cuerpo);
+  color: var(--color-texto);
+  width: 100%;
+  outline: none;
+}
+
+.prov-contador {
+  font-size: 0.8rem;
+  color: var(--color-texto-suave);
+  background: var(--color-gris);
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.prov-tabla-wrapper {
+  overflow-x: auto;
+}
+
+.prov-estado {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-texto-suave);
+  font-size: 0.88rem;
+}
+
+.prov-nombre {
+  font-weight: 700;
+  color: var(--color-texto);
+}
+
+.prov-fila-activa {
+  background: rgba(46,125,50,0.06) !important;
+}
+
+.prov-btn-editar {
+  background: transparent;
+  border: 1.5px solid var(--color-verde);
+  color: var(--color-verde);
+  padding: 4px 10px;
+  border-radius: var(--radio-sm);
+  font-size: 0.78rem;
+  font-family: var(--fuente-cuerpo);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transicion);
+}
+
+.prov-btn-editar:hover {
+  background: var(--color-verde);
+  color: var(--color-blanco);
+}
+
+/* ===== PRODUCTOS DEL PROVEEDOR ===== */
+.prov-productos {
+  border-top: 3px solid var(--color-amarillo);
+}
+
+.prov-productos-titulo {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-texto);
+  margin-bottom: 0.25rem;
+}
+
+.prov-productos-titulo span {
+  color: var(--color-verde);
+}

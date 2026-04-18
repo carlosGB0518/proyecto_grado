@@ -1,0 +1,143 @@
+/* ===== PEDIDOS — Supermercado Máximo ===== */
+
+.pedidos-container {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.pedidos-header {
+  margin-bottom: 1.5rem;
+}
+
+.pedidos-titulo {
+  font-family: var(--fuente-titulo);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-oscuro);
+  margin-bottom: 0.3rem;
+}
+
+.pedidos-subtitulo {
+  font-size: 0.88rem;
+  color: var(--color-texto-suave);
+}
+
+/* ===== FILTROS ===== */
+.pedidos-filtros {
+  margin-bottom: 0;
+}
+
+.pedidos-filtros-titulo {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-texto);
+  margin-bottom: 1rem;
+}
+
+.pedidos-filtros-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.pedidos-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.pedidos-campo label {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--color-texto);
+}
+
+.pedidos-filtros-acciones {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.pedidos-btn-pdf {
+  background: transparent;
+  border: 1.5px solid var(--color-rojo);
+  color: var(--color-rojo);
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radio-sm);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: var(--transicion);
+}
+
+.pedidos-btn-pdf:hover {
+  background: var(--color-rojo);
+  color: var(--color-blanco);
+}
+
+/* ===== RESULTADOS ===== */
+.pedidos-resultado-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--color-gris-borde);
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pedidos-resultado-titulo {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--color-texto);
+}
+
+.pedidos-total {
+  font-size: 0.9rem;
+  color: var(--color-texto-suave);
+}
+
+.pedidos-total strong {
+  color: var(--color-verde);
+  font-family: var(--fuente-titulo);
+  font-size: 1rem;
+}
+
+.pedidos-tabla-wrapper {
+  overflow-x: auto;
+}
+
+.pedidos-estado {
+  padding: 3rem;
+  text-align: center;
+  color: var(--color-texto-suave);
+  font-size: 0.9rem;
+}
+
+/* ===== CELDAS ===== */
+.pedidos-num {
+  color: var(--color-texto-suave);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.pedidos-producto {
+  font-weight: 600;
+  color: var(--color-texto);
+}
+
+.pedidos-subtotal {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  color: var(--color-verde);
+}
+
+.pedidos-fecha {
+  font-size: 0.82rem;
+  color: var(--color-texto-suave);
+  white-space: nowrap;
+}

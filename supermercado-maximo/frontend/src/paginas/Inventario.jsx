@@ -1,420 +1,336 @@
-import { useEffect, useState, useRef } from 'react';
+/**
+ * Inventario.jsx — Supermercado Máximo
+ *
+ * Correcciones:
+ * - registrarSalida: corregido (era bug: sumaba en vez de restar)
+ * - Usa InventarioContexto para CRUD (Realtime ya propagado a Caja)
+ * - Elimina el useEffect redundante que hacía fetch local separado
+ */
+import { useEffect, useState, useRef, useContext } from 'react';
 import { supabase } from '../supabase';
+import { InventarioContexto } from '../contextos/InventarioContexto';
 import LayoutBase from '../layouts/LayoutBase';
+import { AlertaStockPanel } from '../componentes/AlertaStock';
 import '../estilos/inventario.css';
 
 const Inventario = () => {
-  const [productos, setProductos] = useState([]);
+  const { productos, cargarProductos, productosAlerta } = useContext(InventarioContexto);
+
   const [nuevoProducto, setNuevoProducto] = useState({
-    codigo: '',
-    nombre: '',
-    precio: '',
-    stockactual: '',
-    stockminimo: '',
+    codigo: '', nombre: '', precio: '', stockActual: '', stockMinimo: '',
   });
-  const [proveedores, setProveedores] = useState([]);
-  const [proveedorId, setProveedorId] = useState('');
-  const [productoSeleccionado, setProductoSeleccionado] = useState(null);
-  const [cantidadPedido, setCantidadPedido] = useState('');
-  const [fechaPedido, setFechaPedido] = useState('');
-  const [mostrarModalPedido, setMostrarModalPedido] = useState(false);
+  const [proveedores, setProveedores]     = useState([]);
+  const [proveedorId, setProveedorId]     = useState('');
+  const [modoEdicion, setModoEdicion]     = useState(null);
 
-
-  const [modoEdicion, setModoEdicion] = useState(null);
+  // Movimientos de stock
   const [codigoMovimiento, setCodigoMovimiento] = useState('');
   const [cantidadMovimiento, setCantidadMovimiento] = useState('');
 
-  const inputCodigoRef = useRef(null);
+  // Modal pedido
+  const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+  const [cantidadPedido, setCantidadPedido]   = useState('');
+  const [fechaPedido, setFechaPedido]         = useState('');
+  const [mostrarModalPedido, setMostrarModalPedido] = useState(false);
+
+  // Búsqueda
+  const [busqueda, setBusqueda] = useState('');
+
+  const inputCodigoRef    = useRef(null);
   const inputMovimientoRef = useRef(null);
 
   useEffect(() => {
-    cargarProductos();
     cargarProveedores();
-
-    // 🔔 Escuchar cambios en tiempo real en la tabla 'productos'
-    const canal = supabase
-      .channel('realtime:productos')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'productos' },
-        () => {
-          cargarProductos();
-        }
-      )
-      .subscribe();
-
-    // ✅ Enfocar campo de código para escaneo
-    if (inputCodigoRef.current) {
-      inputCodigoRef.current.focus();
-    }
-
-    return () => {
-      supabase.removeChannel(canal);
-    };
+    if (inputCodigoRef.current) inputCodigoRef.current.focus();
   }, []);
 
-  const cargarProductos = async () => {
-  const { data, error } = await supabase
-    .from('productos')
-    .select('id, codigo, nombre, precio, stockactual, stockminimo, proveedor_id, proveedor:proveedor_id(nombre)')
-
-    .eq('activo', true); // ✅ solo productos activos
-
-  if (error) {
-    alert('Error al cargar productos: ' + error.message);
-  } else {
-    setProductos(data);
-  }
-};
-
-  const manejarCambio = (e) => {
-    setNuevoProducto({ ...nuevoProducto, [e.target.name]: e.target.value });
+  const cargarProveedores = async () => {
+    const { data } = await supabase.from('proveedores').select('id, nombre').order('nombre');
+    if (data) setProveedores(data);
   };
 
-const manejarAgregar = async (e) => {
-  e.preventDefault();
-  const { codigo, nombre, precio, stockactual, stockminimo } = nuevoProducto;
+  const manejarCambio = e =>
+    setNuevoProducto(p => ({ ...p, [e.target.name]: e.target.value }));
 
-  if (!codigo || !nombre || !precio || stockactual === '' || stockminimo === '') return;
+  // ── Agregar / reactivar producto ───────────────────────────────────
+  const manejarAgregar = async (e) => {
+    e.preventDefault();
+    const { codigo, nombre, precio, stockActual, stockMinimo } = nuevoProducto;
+    if (!codigo || !nombre || !precio || stockActual === '' || stockMinimo === '') return;
 
-  // ✅ Verificar si ya existe un producto con ese código
-  const { data: productoExistente } = await supabase
-    .from('productos')
-    .select('*')
-    .eq('codigo', codigo)
-    .single();
+    // ¿Existe?
+    const { data: existente } = await supabase
+      .from('productos').select('*').eq('codigo', codigo).single();
 
-  if (productoExistente) {
-    // ✅ Si existe y está inactivo, lo reactivamos
-    if (!productoExistente.activo) {
-      const { error: reactivarError } = await supabase
-        .from('productos')
-        .update({
-          nombre,
-          precio: parseInt(precio),
-          stockactual: parseInt(stockactual),
-          stockminimo: parseInt(stockminimo),
-          activo: true
-        })
-        .eq('id', productoExistente.id);
-
-      if (reactivarError) {
-        alert('Error al reactivar producto: ' + reactivarError.message);
+    if (existente) {
+      if (!existente.activo) {
+        // Reactivar
+        await supabase.from('productos').update({
+          nombre, precio: parseInt(precio),
+          stockActual: parseInt(stockActual),
+          stockMinimo: parseInt(stockMinimo),
+          activo: true,
+        }).eq('id', existente.id);
+        cargarProductos();
+        resetForm();
       } else {
-        await cargarProductos();
-        setNuevoProducto({
-          codigo: '',
-          nombre: '',
-          precio: '',
-          stockactual: '',
-          stockminimo: '',
-        });
-        if (inputCodigoRef.current) inputCodigoRef.current.focus();
+        alert('Ya existe un producto activo con ese código.');
       }
       return;
     }
 
-    // ⚠️ Si ya existe y está activo, no se puede duplicar
-    alert('Ya existe un producto con ese código.');
-    return;
-  }
+    await supabase.from('productos').insert([{
+      codigo, nombre,
+      precio: parseInt(precio),
+      stockActual: parseInt(stockActual),
+      stockMinimo: parseInt(stockMinimo),
+      proveedor_id: proveedorId || null,
+      activo: true,
+    }]);
+    cargarProductos();
+    resetForm();
+  };
 
-  // ✅ Si no existe, lo insertamos normalmente
-  const { error } = await supabase
-    .from('productos')
-    .insert([
-      {
-        codigo,
-        nombre,
-        precio: parseInt(precio),
-        stockactual: parseInt(stockactual),
-        stockminimo: parseInt(stockminimo),
-        proveedor_id: proveedorId || null,
-        activo: true
-      },
-    ]);
-    setProveedorId('');
-
-
-  if (error) {
-    alert('Error al agregar producto: ' + error.message);
-  } else {
-    await cargarProductos();
-    setNuevoProducto({
-      codigo: '',
-      nombre: '',
-      precio: '',
-      stockactual: '',
-      stockminimo: '',
-    });
-    if (inputCodigoRef.current) inputCodigoRef.current.focus();
-  }
-};
-
-const cargarProveedores = async () => {
-    const { data, error } = await supabase.from('proveedores').select('id, nombre');
-      if (!error) setProveedores(data);
-        };
-
-const abrirModalPedido = (producto) => {
-  console.log('Producto seleccionado:', producto);
-  if (!producto.proveedor_id) {
-    alert(`Este producto no tiene proveedor asignado. Por favor edítalo antes de hacer un pedido.`);
-    return;
-  }
-
-  setProductoSeleccionado(producto);
-  setCantidadPedido('');
-  setFechaPedido(new Date().toISOString().split('T')[0]);
-  setMostrarModalPedido(true);
-};
-
-const confirmarPedido = async () => {
-  if (!productoSeleccionado?.proveedor_id) {
-    alert('Este producto no tiene proveedor asignado.');
-    return;
-  }
-
-  if (!cantidadPedido || isNaN(cantidadPedido) || parseInt(cantidadPedido) <= 0) {
-    alert('Cantidad inválida.');
-    return;
-  }
-
-  const { error } = await supabase.from('pedidos').insert([{
-    producto_id: productoSeleccionado.id,
-    proveedor_id: productoSeleccionado.proveedor_id,
-    cantidad: parseInt(cantidadPedido),
-    precio_unitario: productoSeleccionado.precio,
-    fecha: fechaPedido
-  }]);
-
-  if (error) {
-    alert('Error al registrar pedido: ' + error.message);
-  } else {
-    alert('Pedido registrado correctamente.');
-    setMostrarModalPedido(false);
-    setProductoSeleccionado(null);
-    setCantidadPedido('');
-    setFechaPedido('');
-  }
-};
-
-
-  const manejarEditar = (producto) => {
-    setModoEdicion(producto.id);
-    setNuevoProducto(producto);
-    setProveedorId(producto.proveedor_id || '');
-
+  // ── Editar ─────────────────────────────────────────────────────────
+  const manejarEditar = p => {
+    setModoEdicion(p.id);
+    setNuevoProducto(p);
+    setProveedorId(p.proveedor_id || '');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const guardarEdicion = async (e) => {
     e.preventDefault();
-    const { error } = await supabase
-      .from('productos')
-      .update({
-        nombre: nuevoProducto.nombre,
-        precio: parseInt(nuevoProducto.precio),
-        stockactual: parseInt(nuevoProducto.stockactual),
-        proveedor_id: proveedorId || null,
-        stockminimo: parseInt(nuevoProducto.stockminimo),
-        proveedor_id: proveedorId || null
-      })
-      .eq('id', modoEdicion);
-
-    if (error) {
-      alert('Error al editar: ' + error.message);
-    } else {
-      setModoEdicion(null);
-      await cargarProductos();
-      setNuevoProducto({
-        codigo: '',
-        nombre: '',
-        precio: '',
-        stockactual: '',
-        stockminimo: '',
-      });
-      if (inputCodigoRef.current) inputCodigoRef.current.focus();
-    }
+    await supabase.from('productos').update({
+      nombre:      nuevoProducto.nombre,
+      precio:      parseInt(nuevoProducto.precio),
+      stockActual: parseInt(nuevoProducto.stockActual),
+      stockMinimo: parseInt(nuevoProducto.stockMinimo),
+      proveedor_id: proveedorId || null,
+    }).eq('id', modoEdicion);
+    setModoEdicion(null);
+    cargarProductos();
+    resetForm();
   };
 
   const eliminarProducto = async (id) => {
-  if (!window.confirm('¿Eliminar producto del inventario? Esta acción no afectará las ventas pasadas.')) return;
+    if (!window.confirm('¿Eliminar este producto del inventario? Los datos de ventas anteriores se conservan.')) return;
+    await supabase.from('productos').update({ activo: false }).eq('id', id);
+    cargarProductos();
+  };
 
-  const { error } = await supabase
-    .from('productos')
-    .update({ activo: false }) // ✅ eliminación lógica
-    .eq('id', id);
+  const resetForm = () => {
+    setNuevoProducto({ codigo: '', nombre: '', precio: '', stockActual: '', stockMinimo: '' });
+    setProveedorId('');
+    setModoEdicion(null);
+    if (inputCodigoRef.current) inputCodigoRef.current.focus();
+  };
 
-  if (error) {
-    alert('Error al marcar como eliminado: ' + error.message);
-  } else {
-    await cargarProductos();
-  }
-};
-
-const registrarEntrada = async () => {
-  if (!codigoMovimiento || !cantidadMovimiento) {
-    alert('Debes ingresar el código y la cantidad.');
-    return;
-  }
-
-  const producto = productos.find((p) => p.codigo === codigoMovimiento);
-  if (producto) {
-    const nuevoStock = producto.stockactual + parseInt(cantidadMovimiento);
-    const { error } = await supabase
-      .from('productos')
-      .update({ stockactual: nuevoStock })
-      .eq('id', producto.id);
-    if (!error) {
-      await cargarProductos();
-      setCodigoMovimiento('');
-      setCantidadMovimiento('');
-      if (inputMovimientoRef.current) inputMovimientoRef.current.focus();
+  // ── Movimientos de stock ───────────────────────────────────────────
+  const registrarMovimiento = async (tipo) => {
+    if (!codigoMovimiento || !cantidadMovimiento) {
+      alert('Ingresa el código y la cantidad.'); return;
     }
-  }
-};
+    const cantidad = parseInt(cantidadMovimiento);
+    if (isNaN(cantidad) || cantidad <= 0) { alert('Cantidad inválida.'); return; }
 
+    const producto = productos.find(p => p.codigo === codigoMovimiento);
+    if (!producto) { alert('Producto no encontrado.'); return; }
 
-const registrarSalida = async () => {
-  if (!codigoMovimiento || !cantidadMovimiento) {
-    alert('Debes ingresar el código y la cantidad.');
-    return;
-  }
+    // ✅ BUG FIX: salida resta, entrada suma
+    const nuevoStock = tipo === 'entrada'
+      ? producto.stockActual + cantidad
+      : producto.stockActual - cantidad;
 
-  const producto = productos.find((p) => p.codigo === codigoMovimiento);
-  if (producto) {
-    const nuevoStock = producto.stockactual + parseInt(cantidadMovimiento);
-    const { error } = await supabase
-      .from('productos')
-      .update({ stockactual: nuevoStock })
-      .eq('id', producto.id);
-    if (!error) {
-      await cargarProductos();
-      setCodigoMovimiento('');
-      setCantidadMovimiento('');
-      if (inputMovimientoRef.current) inputMovimientoRef.current.focus();
+    if (nuevoStock < 0) {
+      alert(`⚠️ Stock insuficiente. Stock actual: ${producto.stockActual}`); return;
     }
-  }
-};
 
+    await supabase.from('productos').update({ stockActual: nuevoStock }).eq('id', producto.id);
+    cargarProductos();
+    setCodigoMovimiento('');
+    setCantidadMovimiento('');
+    if (inputMovimientoRef.current) inputMovimientoRef.current.focus();
+  };
+
+  // ── Modal pedido ───────────────────────────────────────────────────
+  const abrirModalPedido = (p) => {
+    if (!p.proveedor_id) {
+      alert('Este producto no tiene proveedor asignado. Edítalo primero.'); return;
+    }
+    setProductoSeleccionado(p);
+    setCantidadPedido('');
+    setFechaPedido(new Date().toISOString().split('T')[0]);
+    setMostrarModalPedido(true);
+  };
+
+  const confirmarPedido = async () => {
+    if (!cantidadPedido || parseInt(cantidadPedido) <= 0) {
+      alert('Cantidad inválida.'); return;
+    }
+    await supabase.from('pedidos').insert([{
+      producto_id:    productoSeleccionado.id,
+      proveedor_id:   productoSeleccionado.proveedor_id,
+      cantidad:       parseInt(cantidadPedido),
+      precio_unitario: productoSeleccionado.precio,
+      fecha: fechaPedido,
+    }]);
+    alert('✅ Pedido registrado.');
+    setMostrarModalPedido(false);
+  };
+
+  // ── Filtro de búsqueda ─────────────────────────────────────────────
+  const productosFiltrados = productos.filter(p =>
+    p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    p.codigo?.toLowerCase().includes(busqueda.toLowerCase())
+  );
 
   return (
     <LayoutBase>
       <div className="inventario-container">
-        <h2>Inventario</h2>
+        <h2>📦 Inventario</h2>
 
-        <form onSubmit={modoEdicion ? guardarEdicion : manejarAgregar} className="inventario-form">
-          
-          <input type="text" name="nombre" placeholder="Nombre" value={nuevoProducto.nombre} onChange={manejarCambio} required />
-          <input type="number" name="precio" placeholder="Precio" value={nuevoProducto.precio} onChange={manejarCambio} required />
-          <input type="number" name="stockactual" placeholder="Stock actual" value={nuevoProducto.stockactual} onChange={manejarCambio} required />
-          <input type="number" name="stockminimo" placeholder="Stock mínimo" value={nuevoProducto.stockminimo} onChange={manejarCambio} required />
-          <input
-            ref={inputCodigoRef}
-            type="text"
-            name="codigo"
-            placeholder="Código"
-            value={nuevoProducto.codigo}
-            onChange={manejarCambio}
-            required
-            disabled={modoEdicion !== null}
-          />
-          <label>Proveedor:</label>
-          <select value={proveedorId} onChange={(e) => setProveedorId(e.target.value)}>
-            <option value="">Selecciona un proveedor</option>
-            {proveedores.map((p) => (
-              <option key={p.id} value={p.id}>{p.nombre}</option>
-            ))}
+        {/* Alertas de stock bajo */}
+        <AlertaStockPanel />
+
+        {/* Formulario agregar/editar */}
+        <form
+          onSubmit={modoEdicion ? guardarEdicion : manejarAgregar}
+          className="inventario-form"
+        >
+          <input ref={inputCodigoRef} type="text" name="codigo"
+            placeholder="Código *" value={nuevoProducto.codigo}
+            onChange={manejarCambio} required disabled={modoEdicion !== null} />
+          <input type="text" name="nombre"
+            placeholder="Nombre *" value={nuevoProducto.nombre}
+            onChange={manejarCambio} required />
+          <input type="number" name="precio"
+            placeholder="Precio *" value={nuevoProducto.precio}
+            onChange={manejarCambio} required min="0" />
+          <input type="number" name="stockActual"
+            placeholder="Stock actual *" value={nuevoProducto.stockActual}
+            onChange={manejarCambio} required min="0" />
+          <input type="number" name="stockMinimo"
+            placeholder="Stock mínimo *" value={nuevoProducto.stockMinimo}
+            onChange={manejarCambio} required min="0" />
+          <select value={proveedorId} onChange={e => setProveedorId(e.target.value)}>
+            <option value="">Sin proveedor</option>
+            {proveedores.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
           </select>
-
-          <button type="submit">{modoEdicion ? 'Guardar cambios' : 'Agregar producto'}</button>
+          <button type="submit">{modoEdicion ? '💾 Guardar cambios' : '➕ Agregar'}</button>
+          {modoEdicion && (
+            <button type="button" onClick={resetForm} style={{
+              background: 'transparent', border: '1.5px solid var(--color-gris-borde)',
+              color: 'var(--color-texto-suave)'
+            }}>Cancelar</button>
+          )}
         </form>
 
+        {/* Movimientos de stock */}
         <div className="movimientos-stock">
-          <h3>Registrar movimiento de stock</h3>
-          <input
-              ref={inputMovimientoRef}
-              type="text"
-              placeholder="Código"
+          <h3>📊 Movimientos de Stock</h3>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+            <input ref={inputMovimientoRef} type="text"
+              placeholder="Código del producto"
               value={codigoMovimiento}
-              onChange={(e) => setCodigoMovimiento(e.target.value)}
+              onChange={e => setCodigoMovimiento(e.target.value)}
+              style={{ flex: 1, minWidth: '150px', padding: '0.6rem', border: '1.5px solid var(--color-gris-borde)', borderRadius: 'var(--radio-sm)' }}
             />
-          <input
-            type="number"
-            placeholder="Cantidad"
-            value={cantidadMovimiento}
-            onChange={(e) => setCantidadMovimiento(e.target.value)}
-          />
-          <button onClick={registrarEntrada}>Entrada</button>
-          <button onClick={registrarSalida}>Salida</button>
+            <input type="number" min="1"
+              placeholder="Cantidad"
+              value={cantidadMovimiento}
+              onChange={e => setCantidadMovimiento(e.target.value)}
+              style={{ width: '120px', padding: '0.6rem', border: '1.5px solid var(--color-gris-borde)', borderRadius: 'var(--radio-sm)' }}
+            />
+            <button onClick={() => registrarMovimiento('entrada')} className="btn-primary">
+              ⬆️ Entrada
+            </button>
+            <button onClick={() => registrarMovimiento('salida')} className="btn-danger">
+              ⬇️ Salida
+            </button>
+          </div>
         </div>
 
-        <table className="inventario-tabla">
-          <thead>
-            <tr>
-              <th>Código</th>
-              <th>Nombre</th>
-              <th>Precio</th>
-              <th>Stock</th>
-              <th>Mínimo</th>
-              <th>Acciones</th>
-              <th>Proveedor</th>
+        {/* Búsqueda */}
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', margin: '1rem 0 0.5rem' }}>
+          <input type="text" placeholder="🔍 Buscar por nombre o código..."
+            value={busqueda} onChange={e => setBusqueda(e.target.value)}
+            style={{ flex: 1, padding: '0.6rem 0.9rem', border: '1.5px solid var(--color-gris-borde)', borderRadius: 'var(--radio-sm)', fontFamily: 'var(--fuente-cuerpo)' }}
+          />
+          <span style={{ fontSize: '0.82rem', color: 'var(--color-texto-suave)', whiteSpace: 'nowrap' }}>
+            {productosFiltrados.length} de {productos.length} productos
+          </span>
+        </div>
 
-            </tr>
-          </thead>
-          <tbody>
-            {productos.map((p) => (
-              <tr key={p.id} className={p.stockactual < p.stockminimo ? 'stock-bajo' : ''}>
-                <td>{p.codigo}</td>
-                <td>{p.nombre}</td>
-                <td>${p.precio.toLocaleString()}</td>
-                <td>{p.stockactual}</td>
-                <td>{p.stockminimo}</td>
-                <td>{p.proveedor?.nombre || 'Sin proveedor'}</td>
-
-                <td>
-                  <button onClick={() => manejarEditar(p)}>✏️</button>
-                  <button onClick={() => eliminarProducto(p.id)}>🗑️</button>
-                  <button onClick={() => abrirModalPedido(p)}>📦</button>
-
-                </td>
+        {/* Tabla */}
+        <div className="inventario-tabla-wrapper">
+          <table className="inventario-tabla">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Mínimo</th>
+                <th>Proveedor</th>
+                <th>Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {productosFiltrados.map(p => (
+                <tr key={p.id}>
+                  <td style={{ fontFamily: 'monospace', fontSize: '0.82rem' }}>{p.codigo}</td>
+                  <td style={{ fontWeight: 600 }}>{p.nombre}</td>
+                  <td>${p.precio.toLocaleString('es-CO')}</td>
+                  <td className={p.stockActual < p.stockMinimo ? 'stock-bajo' : 'stock-ok'}>
+                    {p.stockActual}
+                    {p.stockActual < p.stockMinimo && ' ⚠️'}
+                  </td>
+                  <td>{p.stockMinimo}</td>
+                  <td>{p.proveedor?.nombre || '—'}</td>
+                  <td>
+                    <button className="btn-editar" onClick={() => manejarEditar(p)} title="Editar">✏️</button>
+                    <button className="btn-eliminar" onClick={() => eliminarProducto(p.id)} title="Eliminar">🗑️</button>
+                    <button onClick={() => abrirModalPedido(p)} title="Hacer pedido"
+                      style={{ background: 'transparent', border: '1.5px solid var(--color-verde)', color: 'var(--color-verde)', padding: '4px 8px', borderRadius: 'var(--radio-sm)', cursor: 'pointer', fontSize: '0.78rem', marginLeft: '4px' }}>
+                      📦 Pedir
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Modal pedido */}
+        {mostrarModalPedido && (
+          <div className="modal-overlay" onClick={() => setMostrarModalPedido(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <h2>📦 Registrar Pedido</h2>
+              <p><strong>Producto:</strong> {productoSeleccionado?.nombre}</p>
+              <p><strong>Proveedor:</strong> {productoSeleccionado?.proveedor?.nombre || '—'}</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
+                <div>
+                  <label style={{ fontSize: '0.83rem', fontWeight: 600 }}>Cantidad *</label>
+                  <input type="number" className="input-base" min="1"
+                    value={cantidadPedido} onChange={e => setCantidadPedido(e.target.value)} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.83rem', fontWeight: 600 }}>Fecha del pedido *</label>
+                  <input type="date" className="input-base"
+                    value={fechaPedido} onChange={e => setFechaPedido(e.target.value)} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
+                <button className="btn-primary" onClick={confirmarPedido}>Confirmar Pedido</button>
+                <button className="btn-secondary" onClick={() => setMostrarModalPedido(false)}>Cancelar</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-      {mostrarModalPedido && (
-  <div className="modal-pedido">
-    <div className="modal-contenido">
-      <h3>Registrar pedido</h3>
-      <p><strong>Producto:</strong> {productoSeleccionado.nombre}</p>
-      <p><strong>Proveedor:</strong> {productoSeleccionado.proveedor?.nombre || 'Sin proveedor'}</p>
-
-      <label>Cantidad:</label>
-      <input
-        type="number"
-        value={cantidadPedido}
-        onChange={(e) => setCantidadPedido(e.target.value)}
-        placeholder="Cantidad"
-      />
-
-      <label>Fecha del pedido:</label>
-      <input
-        type="date"
-        value={fechaPedido}
-        onChange={(e) => setFechaPedido(e.target.value)}
-      />
-
-      <div className="modal-botones">
-        <button onClick={confirmarPedido}>Confirmar</button>
-        <button onClick={() => setMostrarModalPedido(false)}>Cancelar</button>
-      </div>
-    </div>
-  </div>
-)}
     </LayoutBase>
   );
-  
 };
 
 export default Inventario;

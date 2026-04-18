@@ -1,275 +1,305 @@
-import { useContext, useState, useEffect } from 'react';
+/**
+ * Caja.jsx — Supermercado Máximo
+ * Punto de venta con tiempo real, cliente, descuento y puntos de fidelización.
+ */
+import { useContext, useState, useEffect, useRef } from 'react';
 import { InventarioContexto } from '../contextos/InventarioContexto';
+import { UsuarioContexto } from '../contextos/UsuarioContexto';
 import LayoutBase from '../layouts/LayoutBase';
 import api from '../services/api';
 import { supabase } from '../supabase';
 import '../estilos/caja.css';
 
 const Caja = () => {
-  const { productos } = useContext(InventarioContexto);
-  const [codigo, setCodigo] = useState('');
-  const [carrito, setCarrito] = useState([]);
+  const { productos, cargando: cargandoProductos } = useContext(InventarioContexto);
+  const { usuario } = useContext(UsuarioContexto);
+
+  const [codigo, setCodigo]         = useState('');
+  const [carrito, setCarrito]       = useState([]);
   const [metodoPago, setMetodoPago] = useState('efectivo');
-  const [mensaje, setMensaje] = useState('');
+  const [mensaje, setMensaje]       = useState('');
+  const [procesando, setProcesando] = useState(false);
+  const [clientes, setClientes]     = useState([]);
+  const [clienteId, setClienteId]   = useState('');
+  const [descuento, setDescuento]   = useState(0);
+  const [busquedaProd, setBusquedaProd] = useState(''); // filtro visual de productos
+  const inputRef = useRef(null);
+
+  // Cargar clientes con todos los campos necesarios para la factura
   useEffect(() => {
-  const cargarProductos = async () => {
-    const { data, error } = await supabase
-      .from('productos')
-      .select('*')
-      .eq('activo', true); // ✅ solo productos activos
+    supabase
+      .from('clientes')
+      .select('id, nombre, puntos, numero_identificacion, telefono, correo, direccion')
+      .order('nombre')
+      .then(({ data }) => setClientes(data || []));
+  }, []);
 
-    if (error) {
-      alert('Error al cargar productos: ' + error.message);
-    } else {
-      setProductos(data);
-    }
-  };
+  // Enfocar input de código al cargar
+  useEffect(() => {
+    if (inputRef.current) inputRef.current.focus();
+  }, []);
 
-  cargarProductos();
-}, []);
-  // 🛒 Agregar producto al carrito
+  // ── Productos filtrados visualmente ──────────────────────────────
+  const productosFiltrados = busquedaProd
+    ? productos.filter(p =>
+        p.nombre?.toLowerCase().includes(busquedaProd.toLowerCase()) ||
+        p.codigo?.toLowerCase().includes(busquedaProd.toLowerCase())
+      )
+    : productos;
+
+  // ── Carrito ───────────────────────────────────────────────────────
   const agregarAlCarrito = (producto) => {
-
     if (!producto.activo) {
-      alert(`❌ El producto "${producto.nombre}" ha sido eliminado del inventario y no puede venderse.`);
-      return;
+      setMensaje(`❌ "${producto.nombre}" no está disponible.`);
+      setTimeout(() => setMensaje(''), 3000); return;
     }
-
-    // Validar que haya stock disponible
     if (!producto.stockActual || producto.stockActual <= 0) {
-      alert(`❌ ${producto.nombre} no tiene stock disponible`);
-      return;
+      setMensaje(`❌ ${producto.nombre} sin stock disponible.`);
+      setTimeout(() => setMensaje(''), 3000); return;
     }
 
-    const existe = carrito.find(p => p.id === producto.id);
-    
-    if (existe) {
-      // Verificar que no se exceda el stock disponible
-      if (existe.cantidad >= producto.stockActual) {
-        alert(`⚠️ Stock máximo alcanzado para ${producto.nombre} (${producto.stockActual} unidades)`);
-        return;
+    setCarrito(prev => {
+      const existe = prev.find(p => p.id === producto.id);
+      if (existe) {
+        if (existe.cantidad >= producto.stockActual) {
+          setMensaje(`⚠️ Stock máximo: ${producto.stockActual} unidades`);
+          setTimeout(() => setMensaje(''), 3000);
+          return prev;
+        }
+        return prev.map(p => p.id === producto.id ? { ...p, cantidad: p.cantidad + 1 } : p);
       }
-      
-      const actualizado = carrito.map(p =>
-        p.id === producto.id
-          ? { ...p, cantidad: p.cantidad + 1 }
-          : p
-      );
-      setCarrito(actualizado);
+      return [...prev, { ...producto, cantidad: 1 }];
+    });
+  };
+
+  const buscarProducto = () => {
+    const encontrado = productos.find(p => p.codigo === codigo.trim());
+    if (!encontrado) {
+      setMensaje('⚠️ Producto no encontrado con ese código.');
+      setTimeout(() => setMensaje(''), 3000);
     } else {
-      setCarrito([...carrito, { ...producto, cantidad: 1 }]);
+      agregarAlCarrito(encontrado);
     }
+    setCodigo('');
+    if (inputRef.current) inputRef.current.focus();
   };
 
+  const manejarEnter = e => { if (e.key === 'Enter') { e.preventDefault(); buscarProducto(); } };
 
+  const eliminarProducto = id => setCarrito(prev => prev.filter(i => i.id !== id));
 
-          // 🔍 Buscar producto por código
-          const buscarProducto = () => {
-            const productoEncontrado = productos.find(p => p.codigo === codigo.trim());
-
-            if (!productoEncontrado) {
-              alert('⚠️ Producto no encontrado');
-            } else if (!productoEncontrado.activo) {
-              alert(`❌ El producto "${productoEncontrado.nombre}" ha sido eliminado del inventario y no puede venderse.`);
-            } else {
-              agregarAlCarrito(productoEncontrado);
-            }
-
-            setCodigo('');
-
-            };
-
-  const manejarEnter = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      buscarProducto();
+  const cambiarCantidad = (id, nueva) => {
+    if (nueva < 1) return;
+    const prod = productos.find(p => p.id === id);
+    if (prod && nueva > prod.stockActual) {
+      setMensaje(`⚠️ Stock máximo disponible: ${prod.stockActual}`);
+      setTimeout(() => setMensaje(''), 3000); return;
     }
+    setCarrito(prev => prev.map(p => p.id === id ? { ...p, cantidad: nueva } : p));
   };
 
-  // 🗑️ Eliminar del carrito
-  const eliminarProducto = (id) => {
-    const nuevoCarrito = carrito.filter(item => item.id !== id);
-    setCarrito(nuevoCarrito);
-  };
+  // ── Totales ───────────────────────────────────────────────────────
+  const subtotal       = carrito.reduce((s, p) => s + p.precio * p.cantidad, 0);
+  const descuentoMonto = Math.round(subtotal * (descuento / 100));
+  const total          = subtotal - descuentoMonto;
 
-  // 🔢 Cambiar cantidad de un producto
-  const cambiarCantidad = (id, nuevaCantidad) => {
-    if (nuevaCantidad < 1) return;
-    
-    const actualizado = carrito.map(p =>
-      p.id === id
-        ? { ...p, cantidad: nuevaCantidad }
-        : p
-    );
-    setCarrito(actualizado);
-  };
+  // Puntos que ganará el cliente (1 punto por cada $1.000)
+  const puntosAGanar = clienteId ? Math.floor(total / 1000) : 0;
 
-  const total = carrito.reduce((sum, p) => sum + p.precio * p.cantidad, 0);
-
-  // 💾 Guardar venta, actualizar stock y emitir factura
+  // ── Guardar venta ─────────────────────────────────────────────────
   const guardarVenta = async () => {
-    if (carrito.length === 0) {
-      alert('⚠️ No hay productos en el carrito');
-      return;
-    }
+    if (carrito.length === 0) { setMensaje('⚠️ El carrito está vacío.'); return; }
+    if (procesando) return;
+    setProcesando(true);
+    setMensaje('⏳ Procesando venta...');
 
     try {
-      // Crear objeto de venta
-      const venta = {
-        total,
-        metodo_pago: metodoPago,
-        cajero: 'anónimo',
-        fecha: new Date().toISOString(),
-      };
-
-      // 1️⃣ Insertar venta principal
+      // 1. Insertar venta
       const { data: ventaInsertada, error: ventaError } = await supabase
         .from('ventas')
-        .insert([venta])
+        .insert([{
+          total,
+          metodo_pago: metodoPago,
+          cajero:     usuario?.nombre || 'Cajero',
+          usuario:    usuario?.nombre || 'Cajero',
+          cliente_id: clienteId || null,
+          fecha:      new Date().toISOString(),
+          anulada:    false,
+        }])
         .select()
         .single();
 
-      if (ventaError) throw new Error('Error al guardar la venta: ' + ventaError.message);
+      if (ventaError) throw new Error('Error al guardar venta: ' + ventaError.message);
 
-      // 2️⃣ Insertar detalles de la venta
-      const detalles = carrito.map(item => ({
-        venta_id: ventaInsertada.id,
-        producto_id: item.id,
-        cantidad: item.cantidad,
-        precio_unitario: item.precio,
-      }));
-
-      const { error: detalleError } = await supabase
+      // 2. Insertar detalles
+      const { error: detError } = await supabase
         .from('ventas_detalle')
-        .insert(detalles);
+        .insert(carrito.map(item => ({
+          venta_id:        ventaInsertada.id,
+          producto_id:     item.id,
+          cantidad:        item.cantidad,
+          precio_unitario: item.precio,
+        })));
+      if (detError) throw new Error('Error en detalles: ' + detError.message);
 
-      if (detalleError) throw new Error('Error guardando detalles: ' + detalleError.message);
-
-      // 3️⃣ Actualizar stock
+      // 3. Actualizar stock (Realtime lo propaga a todos)
       for (const item of carrito) {
-        const nuevoStock = item.stockActual - item.cantidad;
-        const { error: updateError } = await supabase
-          .from('productos')
-          .update({ stockActual: nuevoStock })
+        await supabase.from('productos')
+          .update({ stockActual: item.stockActual - item.cantidad })
           .eq('id', item.id);
-        if (updateError) console.warn(`⚠️ Error actualizando stock de ${item.nombre}:`, updateError);
       }
 
-      // 4️⃣ Emitir factura automáticamente
-      const facturaPayload = {
-        cliente: {
-          tipoIdentificacionId: 3, // CC
-          numeroIdentificacion: "123456789",
-          nombre: "Cliente Genérico",
-          telefono: "3001234567",
-          direccion: "Calle de prueba",
-          email: "cliente@supermercado.com",
-          municipioId: 1
-        },
-        items: carrito.map((item, index) => ({
-          codigo: item.codigo,
-          descripcion: item.nombre,
-          cantidad: item.cantidad,
-          precioUnitario: item.precio,
-          descuento: 0,
-          impuesto: 19
-        })),
-        totales: {
-          descuento: 0,
-          impuestos: 0,
-          total: total
-        },
-        data: {
-          formaDePagoId: 1, // Contado
-          metodoPagoId: metodoPago === "tarjeta" ? 2 : 10, // efectivo = 10, tarjeta = 2
-          notas: "Gracias por su compra"
-        },
-        venta_id: ventaInsertada.id
-      };
+      // 4. Puntos de fidelización
+      if (clienteId && puntosAGanar > 0) {
+        const clienteActual = clientes.find(c => String(c.id) === String(clienteId));
+        const puntosActuales = clienteActual?.puntos || 0;
+        await Promise.all([
+          supabase.from('clientes').update({ puntos: puntosActuales + puntosAGanar }).eq('id', clienteId),
+          supabase.from('puntos_historial').insert([{
+            cliente_id: clienteId,
+            venta_id:   ventaInsertada.id,
+            puntos:     puntosAGanar,
+            concepto:   `Compra #${ventaInsertada.id} — $${total.toLocaleString('es-CO')}`,
+          }]),
+        ]);
+      }
 
-      const facturaResponse = await fetch(`${api}/api/facturas`, {
+      // 5. Factura electrónica
+      const cli = clientes.find(c => String(c.id) === String(clienteId));
+      const factRes = await fetch(`${api}/api/facturas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(facturaPayload),
+        body: JSON.stringify({
+          cliente: {
+            tipoIdentificacionId:  3,
+            numeroIdentificacion:  cli?.numero_identificacion || '222222222222',
+            nombre:                cli?.nombre || 'Consumidor Final',
+            telefono:              cli?.telefono || '3000000000',
+            direccion:             cli?.direccion || 'Sin dirección',
+            email:                 cli?.correo || 'consumidor@final.com',
+            municipioId: 1,
+          },
+          items: carrito.map(item => ({
+            codigo:         item.codigo,
+            descripcion:    item.nombre,
+            cantidad:       item.cantidad,
+            precioUnitario: item.precio,
+            descuento:      0,
+            impuesto:       19,
+          })),
+          totales: { descuento: descuentoMonto, impuestos: 0, total },
+          data: {
+            formaDePagoId: 1,
+            metodoPagoId:  metodoPago === 'tarjeta' ? 2 : 10,
+            notas: 'Gracias por su compra — Supermercado Máximo',
+          },
+          venta_id: ventaInsertada.id,
+        }),
       });
 
-        const text = await facturaResponse.text();
-        let facturaData = null;
+      const factData = await factRes.json().catch(() => null);
+      const factOk   = factRes.ok;
 
-        try {
-          facturaData = text ? JSON.parse(text) : null;
-        } catch (err) {
-          console.error('❌ Error interpretando JSON de factura:', err.message);
-          throw new Error('Respuesta inválida del servidor de facturación');
-        }
-
-
-      if (!facturaResponse.ok) {
-        throw new Error(facturaData.error || 'Error al emitir factura');
-      }
-
-      console.log('✅ Factura emitida:', facturaData);
-      setMensaje(`✅ Venta completada y factura emitida (${facturaData.uuid || 'sin UUID'})`);
-
-      // 5️⃣ Limpiar carrito
+      // Limpiar carrito
       setCarrito([]);
       setCodigo('');
+      setClienteId('');
+      setDescuento(0);
 
-    } catch (error) {
-      console.error('❌ Error al procesar venta:', error);
+      let msgFinal = `✅ Venta #${ventaInsertada.id} registrada.`;
+      if (factOk) msgFinal += ' Factura electrónica emitida.';
+      else        msgFinal += ' ⚠️ Factura pendiente (revisa Facturación).';
+      if (puntosAGanar > 0) msgFinal += ` ⭐ +${puntosAGanar} puntos al cliente.`;
 
-      alert(`❌ Error al procesar venta: ${error.message || JSON.stringify(error)}`);
+      setMensaje(msgFinal);
+      if (inputRef.current) inputRef.current.focus();
+
+    } catch (err) {
+      setMensaje(`❌ ${err.message}`);
+    } finally {
+      setProcesando(false);
     }
   };
 
   return (
     <LayoutBase>
       <div className="caja-container">
-        <h2 className="caja-titulo">Punto de Venta</h2>
+        <h2 className="caja-titulo">🛒 Punto de Venta</h2>
 
         <div className="caja-layout">
-          {/* COLUMNA IZQUIERDA: Productos */}
+          {/* ── PRODUCTOS ── */}
           <div className="caja-productos-seccion">
+            {/* Búsqueda por código (lector + manual) */}
             <div className="caja-formulario">
               <input
+                ref={inputRef}
                 type="text"
-                autoFocus
-                placeholder="Código de producto o buscar..."
+                placeholder="Escanea código de barras o escribe..."
                 className="caja-input"
                 value={codigo}
-                onChange={(e) => setCodigo(e.target.value)}
+                onChange={e => setCodigo(e.target.value)}
                 onKeyDown={manejarEnter}
               />
-              <button className="caja-boton" onClick={buscarProducto}>
-                🔍 Buscar
-              </button>
+              <button className="caja-boton" onClick={buscarProducto}>🔍</button>
             </div>
 
-            <h3 className="caja-subtitulo">Productos disponibles</h3>
+            {/* Filtro visual rápido */}
+            <input
+              type="text"
+              placeholder="Filtrar productos por nombre..."
+              className="caja-input"
+              style={{ marginBottom: '0.75rem' }}
+              value={busquedaProd}
+              onChange={e => setBusquedaProd(e.target.value)}
+            />
+
+            <h3 className="caja-subtitulo">
+              Productos {cargandoProductos ? '(cargando...)' : `(${productosFiltrados.length})`}
+            </h3>
+
             <div className="caja-productos-grid">
-              {productos.map((producto) => (
-                <div 
-                  className="producto-card" 
+              {productosFiltrados.map(producto => (
+                <div
                   key={producto.id}
+                  className={`producto-card ${producto.stockActual <= 0 ? 'producto-sin-stock' : ''}`}
                   onClick={() => agregarAlCarrito(producto)}
                 >
                   <div className="producto-info">
                     <p className="producto-nombre">{producto.nombre}</p>
-                    <p className="producto-precio">${producto.precio.toLocaleString()}</p>
-                    <p className="producto-stock">Stock: {producto.stockActual || 0}</p>
+                    <p className="producto-precio">${producto.precio.toLocaleString('es-CO')}</p>
+                    <p className="producto-stock"
+                      style={{ color: producto.stockActual < producto.stockMinimo ? 'var(--color-rojo)' : 'inherit' }}>
+                      Stock: {producto.stockActual}
+                      {producto.stockActual < producto.stockMinimo ? ' ⚠️' : ''}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* COLUMNA DERECHA: Carrito (Fijo) */}
+          {/* ── CARRITO ── */}
           <div className="caja-carrito-seccion">
             <h3 className="caja-subtitulo">🛒 Carrito de compra</h3>
-            
+
+            {/* Cliente */}
+            <div className="caja-cliente-selector">
+              <label className="caja-label">Cliente (opcional)</label>
+              <select className="metodo-pago-select" value={clienteId}
+                onChange={e => setClienteId(e.target.value)}>
+                <option value="">— Sin cliente / Consumidor final —</option>
+                {clientes.map(c => (
+                  <option key={c.id} value={c.id}>
+                    {c.nombre} — {c.numero_identificacion || 'Sin ID'} ({c.puntos || 0} pts)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Items del carrito */}
             <div className="carrito-items">
               {carrito.length === 0 ? (
-                <p className="carrito-vacio">No hay productos en el carrito</p>
+                <p className="carrito-vacio">Agrega productos al carrito</p>
               ) : (
                 <table className="caja-tabla">
                   <thead>
@@ -287,31 +317,15 @@ const Caja = () => {
                         <td className="producto-nombre-carrito">{item.nombre}</td>
                         <td>
                           <div className="cantidad-controles">
-                            <button 
-                              className="btn-cantidad"
-                              onClick={() => cambiarCantidad(item.id, item.cantidad - 1)}
-                            >
-                              -
-                            </button>
+                            <button className="btn-cantidad" onClick={() => cambiarCantidad(item.id, item.cantidad - 1)}>−</button>
                             <span className="cantidad-display">{item.cantidad}</span>
-                            <button 
-                              className="btn-cantidad"
-                              onClick={() => cambiarCantidad(item.id, item.cantidad + 1)}
-                            >
-                              +
-                            </button>
+                            <button className="btn-cantidad" onClick={() => cambiarCantidad(item.id, item.cantidad + 1)}>+</button>
                           </div>
                         </td>
-                        <td>${item.precio.toLocaleString()}</td>
-                        <td className="total-item">${(item.precio * item.cantidad).toLocaleString()}</td>
+                        <td>${item.precio.toLocaleString('es-CO')}</td>
+                        <td className="total-item">${(item.precio * item.cantidad).toLocaleString('es-CO')}</td>
                         <td>
-                          <button
-                            className="caja-eliminar"
-                            onClick={() => eliminarProducto(item.id)}
-                            title="Eliminar producto"
-                          >
-                            🗑️
-                          </button>
+                          <button className="caja-eliminar" onClick={() => eliminarProducto(item.id)}>🗑️</button>
                         </td>
                       </tr>
                     ))}
@@ -320,14 +334,12 @@ const Caja = () => {
               )}
             </div>
 
+            {/* Pago */}
             <div className="caja-total-seccion">
               <div className="metodo-pago-grupo">
-                <label>Método de pago:</label>
-                <select
-                  value={metodoPago}
-                  onChange={(e) => setMetodoPago(e.target.value)}
-                  className="metodo-pago-select"
-                >
+                <label>Método de pago</label>
+                <select className="metodo-pago-select" value={metodoPago}
+                  onChange={e => setMetodoPago(e.target.value)}>
                   <option value="efectivo">💵 Efectivo</option>
                   <option value="tarjeta">💳 Tarjeta</option>
                   <option value="nequi">📱 Nequi</option>
@@ -335,20 +347,46 @@ const Caja = () => {
                 </select>
               </div>
 
-              <div className="total-display">
-                <span>TOTAL:</span>
-                <span className="total-monto">${total.toLocaleString()}</span>
+              <div className="metodo-pago-grupo">
+                <label>Descuento (%)</label>
+                <input type="number" min="0" max="100" step="1"
+                  className="metodo-pago-select"
+                  style={{ padding: '0.5rem 0.75rem' }}
+                  value={descuento}
+                  onChange={e => setDescuento(Math.min(100, Math.max(0, Number(e.target.value))))}
+                />
               </div>
 
-              <button 
-                className="caja-finalizar" 
-                onClick={guardarVenta} 
-                disabled={carrito.length === 0}
-              >
-                💰 Finalizar venta
+              {descuento > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.83rem', color: 'var(--color-texto-suave)', padding: '0 2px' }}>
+                  <span>Subtotal: ${subtotal.toLocaleString('es-CO')}</span>
+                  <span style={{ color: 'var(--color-rojo)', fontWeight: 600 }}>
+                    Desc. {descuento}%: −${descuentoMonto.toLocaleString('es-CO')}
+                  </span>
+                </div>
+              )}
+
+              {puntosAGanar > 0 && (
+                <div style={{ fontSize: '0.78rem', color: 'var(--color-amarillo-hover)', fontWeight: 600, padding: '0 2px' }}>
+                  ⭐ Esta compra dará {puntosAGanar} puntos al cliente
+                </div>
+              )}
+
+              <div className="total-display">
+                <span>TOTAL</span>
+                <span className="total-monto">${total.toLocaleString('es-CO')}</span>
+              </div>
+
+              <button className="caja-finalizar" onClick={guardarVenta}
+                disabled={carrito.length === 0 || procesando}>
+                {procesando ? '⏳ Procesando...' : '💰 Finalizar venta'}
               </button>
 
-              {mensaje && <p className="mensaje-exito">{mensaje}</p>}
+              {mensaje && (
+                <p className={`mensaje-exito ${mensaje.startsWith('❌') ? 'mensaje-error' : ''}`}>
+                  {mensaje}
+                </p>
+              )}
             </div>
           </div>
         </div>
