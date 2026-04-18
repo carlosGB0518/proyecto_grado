@@ -40,7 +40,14 @@ function Facturacion() {
       const res = await fetch(`${api}/api/facturas/${numeroFactura}/${tipo}`);
       if (!res.ok) throw new Error(`Error descargando ${tipo.toUpperCase()}`);
 
-      const blob = await res.blob();
+      // Para XML usamos 'application/octet-stream' para forzar descarga
+      // (evita que el browser lo abra en vez de descargarlo)
+      const tipoMime = tipo === 'xml'
+        ? 'application/octet-stream'
+        : 'application/pdf';
+
+      const rawBlob = await res.blob();
+      const blob = new Blob([rawBlob], { type: tipoMime });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
