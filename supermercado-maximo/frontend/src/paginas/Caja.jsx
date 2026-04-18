@@ -53,7 +53,7 @@ const Caja = () => {
       setMensaje(`❌ "${producto.nombre}" no está disponible.`);
       setTimeout(() => setMensaje(''), 3000); return;
     }
-    if (!producto.stockActual || producto.stockActual <= 0) {
+    if (!producto.stockactual || producto.stockactual <= 0) {
       setMensaje(`❌ ${producto.nombre} sin stock disponible.`);
       setTimeout(() => setMensaje(''), 3000); return;
     }
@@ -61,8 +61,8 @@ const Caja = () => {
     setCarrito(prev => {
       const existe = prev.find(p => p.id === producto.id);
       if (existe) {
-        if (existe.cantidad >= producto.stockActual) {
-          setMensaje(`⚠️ Stock máximo: ${producto.stockActual} unidades`);
+        if (existe.cantidad >= producto.stockactual) {
+          setMensaje(`⚠️ Stock máximo: ${producto.stockactual} unidades`);
           setTimeout(() => setMensaje(''), 3000);
           return prev;
         }
@@ -91,8 +91,8 @@ const Caja = () => {
   const cambiarCantidad = (id, nueva) => {
     if (nueva < 1) return;
     const prod = productos.find(p => p.id === id);
-    if (prod && nueva > prod.stockActual) {
-      setMensaje(`⚠️ Stock máximo disponible: ${prod.stockActual}`);
+    if (prod && nueva > prod.stockactual) {
+      setMensaje(`⚠️ Stock máximo disponible: ${prod.stockactual}`);
       setTimeout(() => setMensaje(''), 3000); return;
     }
     setCarrito(prev => prev.map(p => p.id === id ? { ...p, cantidad: nueva } : p));
@@ -145,7 +145,7 @@ const Caja = () => {
       // 3. Actualizar stock (Realtime lo propaga a todos)
       for (const item of carrito) {
         await supabase.from('productos')
-          .update({ stockActual: item.stockActual - item.cantidad })
+          .update({ stockactual: item.stockactual - item.cantidad })
           .eq('id', item.id);
       }
 
@@ -261,16 +261,16 @@ const Caja = () => {
               {productosFiltrados.map(producto => (
                 <div
                   key={producto.id}
-                  className={`producto-card ${producto.stockActual <= 0 ? 'producto-sin-stock' : ''}`}
+                  className={`producto-card ${producto.stockactual <= 0 ? 'producto-sin-stock' : ''}`}
                   onClick={() => agregarAlCarrito(producto)}
                 >
                   <div className="producto-info">
                     <p className="producto-nombre">{producto.nombre}</p>
                     <p className="producto-precio">${producto.precio.toLocaleString('es-CO')}</p>
                     <p className="producto-stock"
-                      style={{ color: producto.stockActual < producto.stockMinimo ? 'var(--color-rojo)' : 'inherit' }}>
-                      Stock: {producto.stockActual}
-                      {producto.stockActual < producto.stockMinimo ? ' ⚠️' : ''}
+                      style={{ color: producto.stockactual < producto.stockminimo ? 'var(--color-rojo)' : 'inherit' }}>
+                      Stock: {producto.stockactual}
+                      {producto.stockactual < producto.stockminimo ? ' ⚠️' : ''}
                     </p>
                   </div>
                 </div>
