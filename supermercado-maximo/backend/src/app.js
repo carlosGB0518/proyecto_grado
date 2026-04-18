@@ -4,41 +4,103 @@ import cors from "cors";
 
 import facturaRoutes from "./routes/factura.routes.js";
 
-// ✅ Cargar variables de entorno
 dotenv.config();
-
-// ✅ Verificación opcional (puedes quitar esto después)
-console.log("FACTUS_BASE_URL:", process.env.FACTUS_BASE_URL);
 
 const app = express();
 
-// ✅ Middlewares
-const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(",").map(origin => origin.trim())
-  : ["https://proyecto-grado-teal.vercel.app"];
+// ================================================================
+// CORS — configuración robusta para Vercel + desarrollo local
+// ================================================================
 
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+const ORIGENES_PERMITIDOS = [
+  // Producción — Vercel (agrega aquí TODOS tus dominios de Vercel)
+  "https://proyecto-grado-teal.vercel.app",
+  "https://proyecto-grado-git-limpia-supermercado-maximos-projects.vercel.app",
+  // Desarrollo local
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:3000",
+  "http://127.0.0.1:5173",
+];
+
+const opcionesCors = {
+  origin: function (origin, callback) {
+    // Permite peticiones sin origin (Postman, curl, SSR)
+    if (!origin) return callback(null, true);
+
+    if (ORIGENES_PERMITIDOS.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("CORS policy: origin not allowed"));
+      console.warn(`⚠️  CORS bloqueado para origen: ${origin}`);
+      callback(new Error(`Origen no permitido por CORS: ${origin}`));
     }
   },
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+  ],
   credentials: true,
-}));
-app.use(express.json());
+  optionsSuccessStatus: 200, // Algunos browsers antiguos usan 204, pero 200 es más seguro
+};
 
-// ✅ Ruta principal de prueba
+// Aplicar CORS ANTES de cualquier otra cosa
+app.use(cors(opcionesCors));
+
+// ✅ Responder a preflight OPTIONS en TODAS las rutas
+// Esto es crítico — sin esto el browser bloquea las peticiones POST/PUT
+app.options("*", cors(opcionesCors));
+
+// ================================================================
+// Middlewares generales
+// ================================================================
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// ================================================================
+// Ruta de salud (útil para verificar que el backend está vivo)
+// ================================================================
 app.get("/", (req, res) => {
-  res.send("🚀 API de Supermercado funcionando correctamente");
+  res.json({
+    status: "ok",
+    mensaje: "🚀 API Supermercado Máximo funcionando",
+    timestamp: new Date().toISOString(),
+  });
 });
 
-// ✅ Montar rutas de factura
+// Ruta de salud explícita para Render health checks
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
+// ================================================================
+// Rutas de la API
+// ================================================================
 app.use("/api", facturaRoutes);
 
-// ✅ Puerto
+// ================================================================
+// Manejo de errores CORS (responde con JSON en vez de HTML)
+// ================================================================
+app.use((err, req, res, next) => {
+  if (err.message && err.message.includes("CORS")) {
+    return res.status(403).json({
+      error: "CORS",
+      mensaje: err.message,
+      origenRecibido: req.headers.origin || "sin origin",
+    });
+  }
+  console.error("❌ Error no manejado:", err.message);
+  res.status(500).json({ error: err.message });
+});
+
+// ================================================================
+// Inicio del servidor
+// ================================================================
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  console.log(`🚀 Backend corriendo en http://localhost:${PORT}`);
+  console.log(`🚀 Backend corriendo en puerto ${PORT}`);
+  console.log(`🌍 Orígenes CORS permitidos:`);
+  ORIGENES_PERMITIDOS.forEach(o => console.log(`   ✅ ${o}`));
 });
