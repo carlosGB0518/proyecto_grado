@@ -13,8 +13,18 @@ console.log("FACTUS_BASE_URL:", process.env.FACTUS_BASE_URL);
 const app = express();
 
 // ✅ Middlewares
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(",").map(origin => origin.trim())
+  : ["https://proyecto-grado-teal.vercel.app"];
+
 app.use(cors({
-  origin: "https://proyecto-grado-teal.vercel.app", // Cambia al puerto de tu frontend
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS policy: origin not allowed"));
+    }
+  },
   credentials: true,
 }));
 app.use(express.json());
