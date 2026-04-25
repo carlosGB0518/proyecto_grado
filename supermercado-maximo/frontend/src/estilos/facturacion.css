@@ -179,3 +179,26 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* ===== BOTÓN EXCEL ===== */
+.fact-btn-excel {
+  font-size: 0.78rem;
+  font-family: var(--fuente-cuerpo);
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: var(--radio-sm);
+  cursor: pointer;
+  transition: var(--transicion);
+  border: 1.5px solid #1D6F42;
+  color: #1D6F42;
+  background: transparent;
+  white-space: nowrap;
+}
+.fact-btn-excel:hover:not(:disabled) {
+  background: #1D6F42;
+  color: var(--color-blanco);
+}
+.fact-btn-excel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
