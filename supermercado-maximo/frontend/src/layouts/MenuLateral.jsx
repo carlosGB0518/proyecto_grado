@@ -20,7 +20,7 @@ const modulosPorRol = {
     { ruta: '/facturacion', etiqueta: 'Facturación',  icono: '🧾' },
     { ruta: '/ventas',      etiqueta: 'Ventas',       icono: '📊' },
     { ruta: '/reportes',    etiqueta: 'Reportes',     icono: '📈' },
-    { ruta: '/vencimientos',    etiqueta: 'Vencimientos',     icono: '📦' },
+    { ruta: '/vencimientos',etiqueta: 'Vencimientos', icono: '📦' },
   ],
   administrador: [
     { ruta: '/',            etiqueta: 'Inicio',       icono: '🏠' },
