@@ -13,6 +13,7 @@ import Ventas           from './paginas/Ventas';
 import Clientes         from './paginas/Clientes';
 import Reportes         from './paginas/Reportes';
 import GestionUsuarios  from './paginas/GestionUsuarios';
+import GestionVencimientos from './paginas/GestionVencimientos'; /*ruta fechas*/
 
 function App() {
   return (
@@ -56,6 +57,13 @@ function App() {
       <Route path="/reportes" element={
         <RutaPrivada roles={['supervisor','administrador']}>
           <Reportes />
+        </RutaPrivada>
+      } />
+ 
+      
+      <Route path="/vencimientos" element={
+        <RutaPrivada roles={['supervisor','administrador']}>
+          <GestionVencimientos />
         </RutaPrivada>
       } />
 
