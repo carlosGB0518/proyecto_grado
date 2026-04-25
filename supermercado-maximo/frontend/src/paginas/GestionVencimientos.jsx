@@ -32,8 +32,8 @@ function GestionVencimientos() {
           .eq('estado_producto', 'disponible');
       } else if (filtro === 'vencido') {
         query = query.lt('fecha_vencimiento', hoy);
-      } else if (filtro === 'todos' && filtro !== 'todos') {
-        query = query.gte('fecha_vencimiento', hoy);
+      } else if (filtro === 'todos') {
+        // Ya tiene todos los campos seleccionados arriba
       }
 
       const { data, error } = await query.order('fecha_vencimiento', { ascending: true });
