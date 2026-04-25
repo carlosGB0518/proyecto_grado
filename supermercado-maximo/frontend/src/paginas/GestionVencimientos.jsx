@@ -24,7 +24,7 @@ function GestionVencimientos() {
 
       let query = supabase
         .from('productos')
-        .select('id, nombre, codigo, fecha_vencimiento, fecha_entrada, numero_lote, estado_producto, stock');
+        .select('id, nombre, codigo, fecha_vencimiento, fecha_entrada, numero_lote, estado_producto, stockactual');
 
       if (filtro === 'proximo') {
         query = query
@@ -219,7 +219,7 @@ function GestionVencimientos() {
                             {dias === null ? '—' : dias < 0 ? `${Math.abs(dias)}d atrás` : `${dias}d`}
                           </span>
                         </td>
-                        <td className="ven-stock">{p.stock || 0}</td>
+                        <td className="ven-stockactual">{p.stockactual || 0}</td>
                         <td>
                           <span className={`ven-badge ven-badge-${p.estado_producto || 'disponible'}`}>
                             {p.estado_producto || 'disponible'}

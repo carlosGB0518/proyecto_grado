@@ -19,8 +19,8 @@
   --color-texto-suave:  #6B6B6B;
 
   /* Tipografías */
-  --fuente-titulo: 'Syne', sans-serif;
-  --fuente-cuerpo: 'DM Sans', sans-serif;
+  --fuente-titulo:  Helvetica;
+  --fuente-cuerpo: 'DM Sans', Helvetica;
 
   /* Efectos */
   --sombra-card:  0 4px 24px rgba(0,0,0,0.08);
@@ -42,7 +42,7 @@ html {
 }
 
 body {
-  font-family: var(--fuente-cuerpo);
+  font-family: Helvetica;
   color: var(--color-texto);
   background-color: var(--color-gris);
   min-height: 100vh;
@@ -50,7 +50,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-weight: 700;
   color: var(--color-oscuro);
 }
@@ -66,13 +66,13 @@ a:hover {
 }
 
 button {
-  font-family: var(--fuente-cuerpo);
+  font-family: Helvetica;
   cursor: pointer;
   transition: var(--transicion);
 }
 
 input, select, textarea {
-  font-family: var(--fuente-cuerpo);
+  font-family: Helvetica;
 }
 
 /* ===== SCROLLBAR DE MARCA ===== */
@@ -93,7 +93,7 @@ input, select, textarea {
 /* ===== BADGES DE ROL ===== */
 .badge-rol {
   display: inline-block;
-  font-family: var(--fuente-cuerpo);
+  font-family: Helvetica;
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -177,7 +177,7 @@ input, select, textarea {
 .tabla-base thead th {
   background-color: var(--color-verde);
   color: var(--color-blanco);
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-weight: 600;
   padding: 0.75rem 1rem;
   text-align: left;
@@ -276,7 +276,7 @@ input, select, textarea {
 }
 
 .modal-content h2 {
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-size: 1.2rem;
   font-weight: 800;
   color: var(--color-verde);

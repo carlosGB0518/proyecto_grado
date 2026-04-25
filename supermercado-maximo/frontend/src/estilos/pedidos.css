@@ -11,7 +11,7 @@
 }
 
 .pedidos-titulo {
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-size: 1.6rem;
   font-weight: 800;
   color: var(--color-oscuro);
@@ -103,7 +103,7 @@
 
 .pedidos-total strong {
   color: var(--color-verde);
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-size: 1rem;
 }
 
@@ -131,7 +131,7 @@
 }
 
 .pedidos-subtotal {
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-weight: 700;
   color: var(--color-verde);
 }

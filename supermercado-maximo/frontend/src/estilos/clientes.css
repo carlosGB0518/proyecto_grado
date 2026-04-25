@@ -16,7 +16,7 @@
 }
 
 .clientes-titulo {
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-size: 1.6rem;
   font-weight: 800;
   color: var(--color-oscuro);
@@ -100,7 +100,7 @@
   background: linear-gradient(135deg, var(--color-amarillo-hover), var(--color-amarillo));
   color: var(--color-oscuro); border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-family: var(--fuente-titulo); font-weight: 800;
+  font-family: Helvetica; font-weight: 800;
   font-size: 0.85rem; flex-shrink: 0;
 }
 
@@ -160,7 +160,7 @@
 }
 
 .clientes-puntos-numero {
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-size: 2rem;
   font-weight: 800;
   color: var(--color-amarillo-hover);

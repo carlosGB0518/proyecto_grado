@@ -7,7 +7,7 @@
 }
 
 .caja-titulo {
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-size: 1.6rem;
   font-weight: 800;
   margin-bottom: 1rem;
@@ -75,7 +75,7 @@
 .caja-boton:hover { background-color: var(--color-verde-hover); }
 
 .caja-subtitulo {
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-size: 1rem;
   font-weight: 700;
   margin-bottom: 1rem;
@@ -118,7 +118,7 @@
 .producto-nombre { font-weight: 700; font-size: 0.9rem; color: var(--color-oscuro); margin: 0;
   overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
   -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.producto-precio { font-family: var(--fuente-titulo); font-size: 1.05rem; font-weight: 800;
+.producto-precio { font-family: Helvetica; font-size: 1.05rem; font-weight: 800;
   color: var(--color-verde); margin: 0; }
 .producto-stock { font-size: 0.78rem; color: var(--color-texto-suave); margin: 0; }
 
@@ -166,7 +166,7 @@
   padding: 0.6rem 0.5rem;
   text-align: left;
   font-weight: 600;
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-size: 0.8rem;
   position: sticky; top: 0; z-index: 10;
 }
@@ -234,12 +234,12 @@
   font-size: 0.92rem; font-weight: 600;
 }
 
-.total-monto { font-family: var(--fuente-titulo); font-size: 1.4rem; font-weight: 800; }
+.total-monto { font-family: Helvetica; font-size: 1.4rem; font-weight: 800; }
 
 .caja-finalizar {
   width: 100%; background: var(--color-amarillo); color: var(--color-oscuro);
   padding: 0.8rem; border: none; border-radius: var(--radio-sm);
-  font-family: var(--fuente-titulo); font-size: 1rem; font-weight: 800;
+  font-family: Helvetica; font-size: 1rem; font-weight: 800;
   cursor: pointer; transition: var(--transicion); letter-spacing: 0.02em;
 }
 .caja-finalizar:hover:not(:disabled) {

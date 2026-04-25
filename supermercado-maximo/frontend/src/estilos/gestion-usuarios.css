@@ -16,7 +16,7 @@
 }
 
 .gu-titulo {
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-size: 1.6rem;
   font-weight: 800;
   color: var(--color-oscuro);
@@ -139,7 +139,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-weight: 800;
   font-size: 0.85rem;
   flex-shrink: 0;

@@ -19,7 +19,7 @@
 }
 
 .registro-title {
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-size: 1.6rem;
   font-weight: 800;
   color: var(--color-oscuro);
@@ -58,7 +58,7 @@
   border: none;
   padding: 0.8rem;
   border-radius: var(--radio-sm);
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;

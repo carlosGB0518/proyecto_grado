@@ -33,7 +33,7 @@
 }
 
 .login-marca-nombre {
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-weight: 800;
   font-size: 2.2rem;
   color: var(--color-blanco);
@@ -107,7 +107,7 @@
 }
 
 .login-titulo {
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-size: 1.75rem;
   font-weight: 800;
   color: var(--color-oscuro);
@@ -163,7 +163,7 @@
   border: none;
   padding: 0.85rem;
   border-radius: var(--radio-sm);
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.02em;

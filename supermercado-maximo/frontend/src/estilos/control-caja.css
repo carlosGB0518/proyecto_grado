@@ -17,7 +17,7 @@
 .cc-header { margin-bottom: 1.25rem; }
 
 .cc-titulo {
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-size: 1.6rem;
   font-weight: 800;
   color: var(--color-oscuro);
@@ -40,7 +40,7 @@
 }
 
 .cc-estado-badge {
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-weight: 700;
   font-size: 0.95rem;
   padding: 4px 14px;
@@ -76,7 +76,7 @@
 
 /* ===== FORMULARIOS ===== */
 .cc-card-titulo {
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--color-verde);
@@ -111,7 +111,7 @@
 
 .cc-btn-grande {
   padding: 0.8rem !important;
-  font-family: var(--fuente-titulo) !important;
+  font-family: Helvetica !important;
   font-size: 1rem !important;
   font-weight: 700 !important;
 }
@@ -155,7 +155,7 @@
 }
 
 .cc-mov-concepto { color: var(--color-texto); font-weight: 500; }
-.cc-mov-monto    { font-family: var(--fuente-titulo); font-weight: 700; }
+.cc-mov-monto    { font-family: Helvetica; font-weight: 700; }
 
 .cc-mov-ingreso .cc-mov-monto { color: var(--color-verde); }
 .cc-mov-egreso  .cc-mov-monto { color: var(--color-rojo); }
@@ -205,8 +205,8 @@
   color: var(--color-texto-suave);
 }
 
-.cc-sobrante { color: var(--color-verde); font-weight: 700; font-family: var(--fuente-titulo); }
-.cc-faltante { color: var(--color-rojo);  font-weight: 700; font-family: var(--fuente-titulo); }
+.cc-sobrante { color: var(--color-verde); font-weight: 700; font-family: Helvetica; }
+.cc-faltante { color: var(--color-rojo);  font-weight: 700; font-family: Helvetica; }
 
 .cc-panel-izq, .cc-panel-der { display: flex; flex-direction: column; gap: 1.25rem; }
 
@@ -245,7 +245,7 @@
 }
 
 .cc-resumen-valor {
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-size: 1.2rem;
   font-weight: 800;
   color: var(--color-oscuro);

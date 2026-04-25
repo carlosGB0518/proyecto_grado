@@ -16,7 +16,7 @@
 }
 
 .rep-titulo {
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-size: 1.6rem;
   font-weight: 800;
   color: var(--color-oscuro);
@@ -63,7 +63,7 @@
 .rep-kpi:nth-child(3) { border-top-color: var(--color-verde-claro); }
 
 .rep-kpi-valor {
-  font-family: var(--fuente-titulo);
+  font-family: Helvetica;
   font-size: 1.7rem;
   font-weight: 800;
   color: var(--color-oscuro);

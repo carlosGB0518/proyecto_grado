@@ -81,8 +81,8 @@
 
 .btn-refrescar {
   padding: 10px 20px;
-  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-  color: white;
+  background: var(--color-verde);
+  color: var(--color-blanco);
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -305,16 +305,13 @@
 }
 
 .stat-item {
-  padding: 24px;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: white;
-  border: 2px solid #e0e0e0;
-  transition: all 0.2s;
-  cursor: pointer;
+  display: block;
+  font-family: Helvetica;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-verde);
+  line-height: 1;
+  margin-bottom: 0.2rem;
 }
 
 .stat-item:hover {
@@ -323,7 +320,7 @@
   border-color: #007bff;
 }
 
-.stat-numero {
+.Helvetica {
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 8px;
@@ -341,7 +338,7 @@
   border-left: 4px solid #dc3545;
 }
 
-.stat-vencido .stat-numero {
+.stat-vencido .Helvetica {
   color: #dc3545;
 }
 
@@ -349,7 +346,7 @@
   border-left: 4px solid #fd7e14;
 }
 
-.stat-critico .stat-numero {
+.stat-critico .Helvetica {
   color: #fd7e14;
 }
 
@@ -357,7 +354,7 @@
   border-left: 4px solid #ffc107;
 }
 
-.stat-proximo .stat-numero {
+.stat-proximo .Helvetica {
   color: #ffc107;
 }
 
@@ -365,7 +362,7 @@
   border-left: 4px solid #007bff;
 }
 
-.stat-total .stat-numero {
+.stat-total .Helvetica {
   color: #007bff;
 }
 
@@ -415,7 +412,7 @@
     padding: 16px;
   }
 
-  .stat-numero {
+  .Helvetica {
     font-size: 2rem;
   }
 }

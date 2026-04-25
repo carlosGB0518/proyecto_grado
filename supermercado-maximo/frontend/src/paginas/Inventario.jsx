@@ -198,9 +198,7 @@ const Inventario = () => {
           onSubmit={modoEdicion ? guardarEdicion : manejarAgregar}
           className="inventario-form"
         >
-          <input ref={inputCodigoRef} type="text" name="codigo"
-            placeholder="Código *" value={nuevoProducto.codigo}
-            onChange={manejarCambio} required disabled={modoEdicion !== null} />
+          
           <input type="text" name="nombre"
             placeholder="Nombre *" value={nuevoProducto.nombre}
             onChange={manejarCambio} required />
@@ -217,6 +215,9 @@ const Inventario = () => {
             <option value="">Sin proveedor</option>
             {proveedores.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
           </select>
+          <input ref={inputCodigoRef} type="text" name="codigo"
+            placeholder="Código *" value={nuevoProducto.codigo}
+            onChange={manejarCambio} required disabled={modoEdicion !== null} />
           <button type="submit">{modoEdicion ? '💾 Guardar cambios' : '➕ Agregar'}</button>
           {modoEdicion && (
             <button type="button" onClick={resetForm} style={{
