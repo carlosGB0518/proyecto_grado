@@ -73,7 +73,7 @@ const Inicio = () => {
         <div className="inicio-bienvenida">
           <div>
             <h1 className="inicio-titulo">
-              Bienvenido, {usuario?.nombre?.split(' ')[0] || 'Usuario'} 👋
+              Bienvenido, {usuario?.nombre?.split(' ')[0] || 'Usuario'} 
             </h1>
             <p className="inicio-parrafo">
               {panelLabel} · {new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -84,7 +84,7 @@ const Inicio = () => {
             disabled={estadisticas.cargando}
             className="inicio-btn-actualizar"
           >
-            {estadisticas.cargando ? '⏳ Actualizando...' : '🔄 Actualizar'}
+            {estadisticas.cargando ? '⏳ Actualizando...' : ' Actualizar'}
           </button>
         </div>
 
