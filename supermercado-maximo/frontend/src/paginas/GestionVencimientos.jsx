@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
-import LayoutBase from '../componentes/LayoutBase';
-import './GestionVencimientos.css';
+import { supabase } from '../supabase';
+import LayoutBase from '../layouts/LayoutBase';
+import '../estilos/GestionVencimientos.css';
 
 function GestionVencimientos() {
   const [productos, setProductos] = useState([]);
