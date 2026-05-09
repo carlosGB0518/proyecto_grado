@@ -26,7 +26,8 @@ function ModalEditarVencimiento({ productoId, productoNombre, onClose, onGuardar
         .single();
 
       if (err) {
-        console.error('Error:', err);
+        console.error('Error cargando datos:', err);
+        setError('Error al cargar los datos del producto');
       } else if (data) {
         setDatos({
           fecha_entrada: data.fecha_entrada || '',
@@ -36,37 +37,37 @@ function ModalEditarVencimiento({ productoId, productoNombre, onClose, onGuardar
       }
     } catch (err) {
       console.error('Error cargando datos:', err);
+      setError('Error inesperado al cargar datos');
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setDatos((prev) => ({ ...prev, [name]: value }));
+    setError(null);
   };
 
   const handleGuardar = async (e) => {
     e.preventDefault();
     setError(null);
-    setCargando(true);
 
     // Validaciones
     if (!datos.fecha_entrada) {
       setError('La fecha de entrada es requerida');
-      setCargando(false);
       return;
     }
     if (!datos.fecha_vencimiento) {
       setError('La fecha de vencimiento es requerida');
-      setCargando(false);
       return;
     }
 
     // Validar que vencimiento sea posterior a entrada
     if (new Date(datos.fecha_vencimiento) <= new Date(datos.fecha_entrada)) {
       setError('La fecha de vencimiento debe ser posterior a la de entrada');
-      setCargando(false);
       return;
     }
+
+    setCargando(true);
 
     try {
       const { error: err } = await supabase
@@ -79,29 +80,47 @@ function ModalEditarVencimiento({ productoId, productoNombre, onClose, onGuardar
         .eq('id', productoId);
 
       if (err) {
+        console.error('Error de Supabase:', err);
         setError('Error al guardar: ' + err.message);
       } else {
         alert('✅ Fechas guardadas exitosamente');
-        onGuardar();
-        onClose();
+        onGuardar(); // Actualiza la lista de productos
+        onClose();   // Cierra el modal
       }
     } catch (err) {
+      console.error('Error inesperado:', err);
       setError('Error inesperado: ' + err.message);
     } finally {
       setCargando(false);
     }
   };
 
+  const handleOverlayClick = (e) => {
+    // Solo cierra si se hace clic en el overlay, no en el contenido
+    if (e.target.className === 'modal-overlay') {
+      onClose();
+    }
+  };
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal-contenido" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>📅 Gestionar Fechas</h2>
-          <button className="btn-cerrar" onClick={onClose}>✕</button>
+          <button 
+            className="btn-cerrar" 
+            onClick={onClose}
+            type="button"
+            aria-label="Cerrar modal"
+          >
+            ✕
+          </button>
         </div>
 
         <div className="modal-body">
-          <p className="producto-nombre">Producto: <strong>{productoNombre}</strong></p>
+          <p className="producto-nombre">
+            Producto: <strong>{productoNombre}</strong>
+          </p>
 
           <form onSubmit={handleGuardar} className="formulario">
             <div className="form-grupo">
@@ -114,11 +133,14 @@ function ModalEditarVencimiento({ productoId, productoNombre, onClose, onGuardar
                 onChange={handleChange}
                 placeholder="Ej: LOTE-2024-001"
                 className="input-form"
+                disabled={cargando}
               />
             </div>
 
             <div className="form-grupo">
-              <label htmlFor="fecha_entrada">Fecha de Entrada: <span className="requerido">*</span></label>
+              <label htmlFor="fecha_entrada">
+                Fecha de Entrada: <span className="requerido">*</span>
+              </label>
               <input
                 id="fecha_entrada"
                 type="date"
@@ -127,11 +149,14 @@ function ModalEditarVencimiento({ productoId, productoNombre, onClose, onGuardar
                 onChange={handleChange}
                 required
                 className="input-form"
+                disabled={cargando}
               />
             </div>
 
             <div className="form-grupo">
-              <label htmlFor="fecha_vencimiento">Fecha de Vencimiento: <span className="requerido">*</span></label>
+              <label htmlFor="fecha_vencimiento">
+                Fecha de Vencimiento: <span className="requerido">*</span>
+              </label>
               <input
                 id="fecha_vencimiento"
                 type="date"
@@ -140,6 +165,7 @@ function ModalEditarVencimiento({ productoId, productoNombre, onClose, onGuardar
                 onChange={handleChange}
                 required
                 className="input-form"
+                disabled={cargando}
               />
             </div>
 

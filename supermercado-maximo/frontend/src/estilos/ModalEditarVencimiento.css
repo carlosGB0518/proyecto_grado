@@ -10,6 +10,8 @@
   justify-content: center;
   z-index: 1000;
   animation: fadeIn 0.2s ease-in;
+  overflow: hidden;
+  backdrop-filter: blur(2px);
 }
 
 @keyframes fadeIn {
@@ -28,6 +30,8 @@
   width: 90%;
   max-width: 500px;
   animation: slideUp 0.3s ease-out;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 @keyframes slideUp {
@@ -50,6 +54,9 @@
   background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
   color: white;
   border-radius: 10px 10px 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .modal-header h2 {
@@ -72,10 +79,15 @@
   justify-content: center;
   border-radius: 4px;
   transition: background 0.2s;
+  flex-shrink: 0;
 }
 
 .btn-cerrar:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-cerrar:active {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .modal-body {
@@ -89,6 +101,7 @@
   margin-bottom: 20px;
   color: #0056b3;
   font-size: 0.95rem;
+  border-left: 4px solid #0056b3;
 }
 
 .formulario {
@@ -111,6 +124,7 @@
 
 .requerido {
   color: #dc3545;
+  font-weight: 700;
 }
 
 .input-form {
@@ -128,14 +142,34 @@
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
+.input-form:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
 .error-mensaje {
   background: #f8d7da;
   color: #721c24;
   border: 1px solid #f5c6cb;
-  padding: 10px 12px;
+  padding: 12px;
   border-radius: 6px;
   font-size: 0.9rem;
   margin-top: 10px;
+  border-left: 4px solid #721c24;
+  animation: shake 0.3s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
 }
 
 .modal-acciones {
@@ -165,6 +199,11 @@
 
 .btn-cancelar:hover:not(:disabled) {
   background: #dee2e6;
+  transform: translateY(-2px);
+}
+
+.btn-cancelar:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .btn-guardar {
@@ -177,8 +216,54 @@
   box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
+.btn-guardar:active:not(:disabled) {
+  transform: translateY(0);
+}
+
 .btn-cancelar:disabled,
 .btn-guardar:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .modal-contenido {
+    width: 95%;
+    max-width: none;
+  }
+
+  .modal-header {
+    padding: 16px;
+  }
+
+  .modal-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .btn-cancelar,
+  .btn-guardar {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-contenido {
+    width: 98%;
+  }
+
+  .modal-acciones {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn-cancelar,
+  .btn-guardar {
+    width: 100%;
+  }
 }

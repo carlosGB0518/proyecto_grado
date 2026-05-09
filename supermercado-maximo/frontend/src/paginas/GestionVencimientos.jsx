@@ -61,9 +61,12 @@ function GestionVencimientos() {
   };
 
   const abrirModalEditar = (producto) => {
-    setProductoSeleccionado(producto);
-    setModalAbierto(true);
-  };
+  setProductoSeleccionado({
+    id: producto.id,
+    nombre: producto.nombre,
+  });
+  setModalAbierto(true);
+};
 
   const cerrarModal = () => {
     setModalAbierto(false);
