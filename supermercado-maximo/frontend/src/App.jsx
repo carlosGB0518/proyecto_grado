@@ -14,6 +14,7 @@ import Clientes         from './paginas/Clientes';
 import Reportes         from './paginas/Reportes';
 import GestionUsuarios  from './paginas/GestionUsuarios';
 import GestionVencimientos from './paginas/GestionVencimientos'; /*ruta fechas*/
+import ModalEditarVencimiento from './paginas/ModalEditarVencimiento';
 
 function App() {
   return (
@@ -64,6 +65,12 @@ function App() {
       <Route path="/vencimientos" element={
         <RutaPrivada roles={['supervisor','administrador']}>
           <GestionVencimientos />
+        </RutaPrivada>
+      } />
+
+      <Route path="/FechasVencimiento" element={
+        <RutaPrivada roles={['supervisor','administrador']}>
+          <ModalEditarVencimiento />
         </RutaPrivada>
       } />
 
