@@ -34,6 +34,7 @@ const modulosPorRol = {
     { ruta: '/proveedores', etiqueta: 'Proveedores',  icono: '🏭' },
     { ruta: '/pedidos',     etiqueta: 'Pedidos',      icono: '📋' },
     { ruta: '/usuarios',    etiqueta: 'Usuarios',     icono: '⚙️' },
+    { ruta: '/vencimientos',etiqueta: 'Vencimientos', icono: '📦' },
   ],
 };
 
