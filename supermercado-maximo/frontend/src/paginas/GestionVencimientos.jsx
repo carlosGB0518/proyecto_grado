@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import LayoutBase from '../layouts/LayoutBase';
+import ModalEditarVencimiento from '../paginas/ModalEditarVencimiento';
 import '../estilos/GestionVencimientos.css';
 
 function GestionVencimientos() {
@@ -9,6 +10,9 @@ function GestionVencimientos() {
   const [filtro, setFiltro] = useState('proximo');
   const [diasAlerta, setDiasAlerta] = useState(7);
   const [totalAlerta, setTotalAlerta] = useState(0);
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+
 
   useEffect(() => {
     cargarProductosVencimiento();
@@ -54,6 +58,16 @@ function GestionVencimientos() {
     } finally {
       setCargando(false);
     }
+  };
+
+  const abrirModalEditar = (producto) => {
+    setProductoSeleccionado(producto);
+    setModalAbierto(true);
+  };
+
+  const cerrarModal = () => {
+    setModalAbierto(false);
+    setProductoSeleccionado(null);
   };
 
   const marcarRetirado = async (productoId) => {
@@ -226,6 +240,13 @@ function GestionVencimientos() {
                           </span>
                         </td>
                         <td className="ven-acciones">
+                          <button
+                            onClick={() => abrirModalEditar(p)}
+                            className="btn-editar"
+                            title="Editar fechas de vencimiento"
+                          >
+                            ✏️ Editar
+                          </button>
                           {p.estado_producto !== 'retirado' && (
                             <button
                               onClick={() => {
@@ -268,6 +289,16 @@ function GestionVencimientos() {
             <div className="stat-label">Total en Alerta</div>
           </div>
         </div>
+
+        {/* Modal Editar Vencimiento */}
+        {modalAbierto && productoSeleccionado && (
+          <ModalEditarVencimiento
+            productoId={productoSeleccionado.id}
+            productoNombre={productoSeleccionado.nombre}
+            onClose={cerrarModal}
+            onGuardar={cargarProductosVencimiento}
+          />
+        )}
       </div>
     </LayoutBase>
   );
