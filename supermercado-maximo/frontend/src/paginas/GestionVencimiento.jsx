@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import LayoutBase from '../layouts/LayoutBase';
-import ModalEditarVencimiento from '../paginas/ModalEditarVencimiento';
+import ModalEditarVencimiento from './ModalEditarVencimiento';
 import '../estilos/GestionVencimientos.css';
 
 function GestionVencimientos() {
