@@ -23,7 +23,7 @@ const modulosPorRol = {
     { ruta: '/vencimientos',etiqueta: 'Vencimientos', icono: '📦' },
   ],
   administrador: [
-    { ruta: '/',            etiqueta: 'Inicio',       icono: '🏠' },
+    { ruta: '/',            etiqueta: 'Inicio' },
     { ruta: '/caja',        etiqueta: 'Caja',         icono: '🛒' },
     { ruta: '/control-caja',etiqueta: 'Control Caja', icono: '💰' },
     { ruta: '/clientes',    etiqueta: 'Clientes',     icono: '👥' },
