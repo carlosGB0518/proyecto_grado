@@ -137,13 +137,13 @@ const Inventario = () => {
     const producto = productos.find(p => p.codigo === codigoMovimiento);
     if (!producto) { alert('Producto no encontrado.'); return; }
 
-    // ✅ BUG FIX: salida resta, entrada suma
+    // BUG FIX: salida resta, entrada suma
     const nuevoStock = tipo === 'entrada'
       ? producto.stockactual + cantidad
       : producto.stockactual - cantidad;
 
     if (nuevoStock < 0) {
-      alert(`⚠️ Stock insuficiente. Stock actual: ${producto.stockactual}`); return;
+      alert(`Stock insuficiente. Stock actual: ${producto.stockactual}`); return;
     }
 
     await supabase.from('productos').update({ stockactual: nuevoStock }).eq('id', producto.id);
@@ -175,7 +175,7 @@ const Inventario = () => {
       precio_unitario: productoSeleccionado.precio,
       fecha: fechaPedido,
     }]);
-    alert('✅ Pedido registrado.');
+    alert('Pedido registrado.');
     setMostrarModalPedido(false);
   };
 
@@ -188,7 +188,7 @@ const Inventario = () => {
   return (
     <LayoutBase>
       <div className="inventario-container">
-        <h2>📦 Inventario</h2>
+        <h2>Inventario</h2>
 
         {/* Alertas de stock bajo */}
         <AlertaStockPanel />
@@ -218,7 +218,7 @@ const Inventario = () => {
           <input ref={inputCodigoRef} type="text" name="codigo"
             placeholder="Código *" value={nuevoProducto.codigo}
             onChange={manejarCambio} required disabled={modoEdicion !== null} />
-          <button type="submit">{modoEdicion ? '💾 Guardar cambios' : '➕ Agregar'}</button>
+          <button type="submit">{modoEdicion ? 'Guardar cambios' : 'Agregar'}</button>
           {modoEdicion && (
             <button type="button" onClick={resetForm} style={{
               background: 'transparent', border: '1.5px solid var(--color-gris-borde)',
@@ -229,7 +229,7 @@ const Inventario = () => {
 
         {/* Movimientos de stock */}
         <div className="movimientos-stock">
-          <h3>📊 Movimientos de Stock</h3>
+          <h3>Movimientos de Stock</h3>
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
             <input ref={inputMovimientoRef} type="text"
               placeholder="Código del producto"
@@ -244,17 +244,17 @@ const Inventario = () => {
               style={{ width: '120px', padding: '0.6rem', border: '1.5px solid var(--color-gris-borde)', borderRadius: 'var(--radio-sm)' }}
             />
             <button onClick={() => registrarMovimiento('entrada')} className="btn-primary">
-              ⬆️ Entrada
+              Entrada
             </button>
             <button onClick={() => registrarMovimiento('salida')} className="btn-danger">
-              ⬇️ Salida
+              Salida
             </button>
           </div>
         </div>
 
         {/* Búsqueda */}
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', margin: '1rem 0 0.5rem' }}>
-          <input type="text" placeholder="🔍 Buscar por nombre o código..."
+          <input type="text" placeholder="Buscar por nombre o código..."
             value={busqueda} onChange={e => setBusqueda(e.target.value)}
             style={{ flex: 1, padding: '0.6rem 0.9rem', border: '1.5px solid var(--color-gris-borde)', borderRadius: 'var(--radio-sm)', fontFamily: 'var(--fuente-cuerpo)' }}
           />
@@ -294,7 +294,7 @@ const Inventario = () => {
                     <button className="btn-eliminar" onClick={() => eliminarProducto(p.id)} title="Eliminar">🗑️</button>
                     <button onClick={() => abrirModalPedido(p)} title="Hacer pedido"
                       style={{ background: 'transparent', border: '1.5px solid var(--color-verde)', color: 'var(--color-verde)', padding: '4px 8px', borderRadius: 'var(--radio-sm)', cursor: 'pointer', fontSize: '0.78rem', marginLeft: '4px' }}>
-                      📦 Pedir
+                      Pedir
                     </button>
                   </td>
                 </tr>
@@ -307,7 +307,7 @@ const Inventario = () => {
         {mostrarModalPedido && (
           <div className="modal-overlay" onClick={() => setMostrarModalPedido(false)}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
-              <h2>📦 Registrar Pedido</h2>
+              <h2>Registrar Pedido</h2>
               <p><strong>Producto:</strong> {productoSeleccionado?.nombre}</p>
               <p><strong>Proveedor:</strong> {productoSeleccionado?.proveedor?.nombre || '—'}</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>

@@ -75,13 +75,13 @@ const Pedidos = () => {
     <LayoutBase>
       <div className="pedidos-container">
         <div className="pedidos-header">
-          <h1 className="pedidos-titulo">📋 Pedidos a Proveedores</h1>
+          <h1 className="pedidos-titulo">Pedidos a Proveedores</h1>
           <p className="pedidos-subtitulo">Consulta y exporta el historial de pedidos por proveedor y fecha.</p>
         </div>
 
         {/* Filtros */}
         <div className="card pedidos-filtros">
-          <h2 className="pedidos-filtros-titulo">🔍 Filtros de búsqueda</h2>
+          <h2 className="pedidos-filtros-titulo">Filtros de búsqueda</h2>
           <div className="pedidos-filtros-grid">
             <div className="pedidos-campo">
               <label>Proveedor</label>
@@ -103,13 +103,13 @@ const Pedidos = () => {
           </div>
           <div className="pedidos-filtros-acciones">
             <button className="btn-primary" onClick={consultarPedidos} disabled={cargando}>
-              {cargando ? 'Buscando...' : '🔍 Buscar Pedidos'}
+              {cargando ? 'Buscando...' : 'Buscar Pedidos'}
             </button>
             {buscado && (
               <button className="btn-secondary" onClick={limpiarFiltros}>Limpiar</button>
             )}
             {pedidos.length > 0 && (
-              <button className="pedidos-btn-pdf" onClick={generarPDF}>📄 Exportar PDF</button>
+              <button className="pedidos-btn-pdf" onClick={generarPDF}>Exportar PDF</button>
             )}
           </div>
         </div>
@@ -129,7 +129,7 @@ const Pedidos = () => {
             </div>
 
             {cargando ? (
-              <div className="pedidos-estado">⏳ Cargando pedidos...</div>
+              <div className="pedidos-estado">Cargando pedidos...</div>
             ) : pedidos.length === 0 ? (
               <div className="pedidos-estado">No hay pedidos con los filtros seleccionados.</div>
             ) : (

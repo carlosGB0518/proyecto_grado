@@ -126,13 +126,13 @@ function Ventas() {
     return (
       <div className="modal-overlay" onClick={() => setMostrarDetalles(false)}>
         <div className="modal-content" onClick={e => e.stopPropagation()}>
-          <h2>📋 Venta #{ventaSeleccionada.id}</h2>
+          <h2>Venta #{ventaSeleccionada.id}</h2>
           <div className="detalle-info">
             <p><strong>Fecha:</strong> {formatearFecha(ventaSeleccionada.fecha)}</p>
             <p><strong>Cliente:</strong> {ventaSeleccionada.clientes?.nombre || 'Sin cliente'}</p>
             <p><strong>Cajero:</strong> {ventaSeleccionada.cajero || ventaSeleccionada.usuario || '—'}</p>
             <p><strong>Método:</strong> {ventaSeleccionada.metodo_pago}</p>
-            <p><strong>Estado:</strong> {ventaSeleccionada.anulada ? '❌ Anulada' : '✅ Activa'}</p>
+            <p><strong>Estado:</strong> {ventaSeleccionada.anulada ? 'Anulada' : 'Activa'}</p>
           </div>
           <h3>Productos</h3>
           <table className="tabla-detalle">
@@ -165,7 +165,7 @@ function Ventas() {
   return (
     <LayoutBase>
       <div className="ventas-container">
-        <h1>📊 Historial de Ventas</h1>
+        <h1>Historial de Ventas</h1>
 
         {/* Estadísticas */}
         <div className="stats-ventas">
@@ -191,13 +191,13 @@ function Ventas() {
             borderRadius: 'var(--radio-sm)', padding: '0.6rem 1rem',
             fontSize: '0.82rem', color: '#795548', marginBottom: '1rem'
           }}>
-            ℹ️ Solo supervisores y administradores pueden anular ventas.
+            Solo supervisores y administradores pueden anular ventas.
           </div>
         )}
 
         {/* Filtros */}
         <section className="filtros">
-          <h2>🔍 Filtrar</h2>
+          <h2>Filtrar</h2>
           <div className="filtros-grid">
             <div className="filtro-item">
               <label>Fecha inicio</label>
@@ -238,7 +238,7 @@ function Ventas() {
         {/* Tabla */}
         <section className="tabla-section">
           {cargando ? (
-            <p className="cargando">⏳ Cargando...</p>
+            <p className="cargando">Cargando...</p>
           ) : ventas.length === 0 ? (
             <p className="sin-datos">No hay ventas con los filtros seleccionados.</p>
           ) : (
@@ -271,8 +271,8 @@ function Ventas() {
                       <td className="precio">${v.total?.toLocaleString('es-CO')}</td>
                       <td>
                         {v.anulada
-                          ? <span className="estado-anulada">❌ Anulada</span>
-                          : <span className="estado-activa">✅ Activa</span>}
+                          ? <span className="estado-anulada">Anulada</span>
+                          : <span className="estado-activa">Activa</span>}
                       </td>
                       <td className="acciones">
                         <button onClick={() => verDetalles(v)} className="btn-ver">👁️ Ver</button>

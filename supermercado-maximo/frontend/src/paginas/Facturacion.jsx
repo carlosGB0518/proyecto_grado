@@ -140,7 +140,7 @@ function Facturacion() {
       <div className="facturacion-container">
         <div className="facturacion-header">
           <div>
-            <h1 className="facturacion-titulo">🧾 Facturación Electrónica</h1>
+            <h1 className="facturacion-titulo">Facturación Electrónica</h1>
             <p className="facturacion-subtitulo">
               Descarga PDF, XML oficial DIAN o Excel legible por cada factura.
             </p>
@@ -159,7 +159,7 @@ function Facturacion() {
 
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           {cargando ? (
-            <div className="facturacion-estado">⏳ Cargando facturas...</div>
+            <div className="facturacion-estado">Cargando facturas...</div>
           ) : facturas.length === 0 ? (
             <div className="facturacion-estado">No hay facturas registradas.</div>
           ) : (

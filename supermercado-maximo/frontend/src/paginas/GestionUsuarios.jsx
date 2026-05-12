@@ -74,7 +74,7 @@ const GestionUsuarios = () => {
       // En ese caso user viene en session, no en user directamente.
       setMensaje({
         tipo: 'exito',
-        texto: `✅ Cuenta creada para ${nombre}. Si está habilitada la confirmación de email, el usuario recibirá un correo.`,
+        texto: `Cuenta creada para ${nombre}. Si está habilitada la confirmación de email, el usuario recibirá un correo.`,
       });
       // Intentamos insertar el registro aunque no tengamos el ID aún
       setMostrarFormulario(false);
@@ -96,7 +96,7 @@ const GestionUsuarios = () => {
       setEnviando(false); return;
     }
 
-    setMensaje({ tipo: 'exito', texto: `✅ Usuario ${nombre} creado como ${etiquetasRol[rol]}.` });
+    setMensaje({ tipo: 'exito', texto: `Usuario ${nombre} creado como ${etiquetasRol[rol]}.` });
     setFormData({ nombre: '', correo: '', password: '', rol: 'cajero' });
     setMostrarFormulario(false);
     cargarUsuarios();
@@ -144,7 +144,7 @@ const GestionUsuarios = () => {
         {/* Cabecera */}
         <div className="gu-header">
           <div>
-            <h1 className="gu-titulo">⚙️ Gestión de Usuarios</h1>
+            <h1 className="gu-titulo">Gestión de Usuarios</h1>
             <p className="gu-subtitulo">
               Crea y administra el acceso del personal. Los usuarios nuevos reciben
               rol <strong>Cajero</strong> por defecto; cambia el rol desde la tabla.

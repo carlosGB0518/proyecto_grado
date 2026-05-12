@@ -83,7 +83,7 @@ function ModalEditarVencimiento({ productoId, productoNombre, onClose, onGuardar
         console.error('Error de Supabase:', err);
         setError('Error al guardar: ' + err.message);
       } else {
-        alert('✅ Fechas guardadas exitosamente');
+        alert('Fechas guardadas exitosamente');
         onGuardar(); // Actualiza la lista de productos
         onClose();   // Cierra el modal
       }
@@ -106,7 +106,7 @@ function ModalEditarVencimiento({ productoId, productoNombre, onClose, onGuardar
     <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal-contenido" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>📅 Gestionar Fechas</h2>
+          <h2>Gestionar Fechas</h2>
           <button 
             className="btn-cerrar" 
             onClick={onClose}
@@ -185,7 +185,7 @@ function ModalEditarVencimiento({ productoId, productoNombre, onClose, onGuardar
                 className="btn-guardar"
                 disabled={cargando}
               >
-                {cargando ? '⏳ Guardando...' : '✅ Guardar Fechas'}
+                {cargando ? 'Guardando...' : 'Guardar Fechas'}
               </button>
             </div>
           </form>

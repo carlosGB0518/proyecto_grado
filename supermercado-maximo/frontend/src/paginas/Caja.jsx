@@ -224,7 +224,7 @@ const Caja = () => {
   return (
     <LayoutBase>
       <div className="caja-container">
-        <h2 className="caja-titulo">🛒 Punto de Venta</h2>
+        <h2 className="caja-titulo"> Punto de Venta</h2>
 
         <div className="caja-layout">
           {/* ── PRODUCTOS ── */}
@@ -280,7 +280,7 @@ const Caja = () => {
 
           {/* ── CARRITO ── */}
           <div className="caja-carrito-seccion">
-            <h3 className="caja-subtitulo">🛒 Carrito de compra</h3>
+            <h3 className="caja-subtitulo"> Carrito de compra</h3>
 
             {/* Cliente */}
             <div className="caja-cliente-selector">
@@ -340,10 +340,10 @@ const Caja = () => {
                 <label>Método de pago</label>
                 <select className="metodo-pago-select" value={metodoPago}
                   onChange={e => setMetodoPago(e.target.value)}>
-                  <option value="efectivo">💵 Efectivo</option>
-                  <option value="tarjeta">💳 Tarjeta</option>
-                  <option value="nequi">📱 Nequi</option>
-                  <option value="daviplata">📱 Daviplata</option>
+                  <option value="efectivo"> Efectivo</option>
+                  <option value="tarjeta"> Tarjeta</option>
+                  <option value="nequi"> Nequi</option>
+                  <option value="daviplata"> Daviplata</option>
                 </select>
               </div>
 
@@ -368,7 +368,7 @@ const Caja = () => {
 
               {puntosAGanar > 0 && (
                 <div style={{ fontSize: '0.78rem', color: 'var(--color-amarillo-hover)', fontWeight: 600, padding: '0 2px' }}>
-                  ⭐ Esta compra dará {puntosAGanar} puntos al cliente
+                   Esta compra dará {puntosAGanar} puntos al cliente
                 </div>
               )}
 
@@ -379,7 +379,7 @@ const Caja = () => {
 
               <button className="caja-finalizar" onClick={guardarVenta}
                 disabled={carrito.length === 0 || procesando}>
-                {procesando ? '⏳ Procesando...' : '💰 Finalizar venta'}
+                {procesando ? '⏳ Procesando...' : 'Finalizar venta'}
               </button>
 
               {mensaje && (

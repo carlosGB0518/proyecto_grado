@@ -47,14 +47,14 @@ function GestionVencimientos() {
 
       if (error) {
         console.error('Error cargando productos:', error.message);
-        alert('⚠️ Error al cargar productos: ' + error.message);
+        alert('Error al cargar productos: ' + error.message);
       } else {
         setProductos(data || []);
         setTotalAlerta(data?.length || 0);
       }
     } catch (err) {
       console.error('Error:', err);
-      alert('❌ Error inesperado: ' + err.message);
+      alert('Error inesperado: ' + err.message);
     } finally {
       setCargando(false);
     }
@@ -81,9 +81,9 @@ function GestionVencimientos() {
         .eq('id', productoId);
 
       if (error) {
-        alert('❌ Error al marcar como retirado: ' + error.message);
+        alert('Error al marcar como retirado: ' + error.message);
       } else {
-        alert('✅ Producto marcado como retirado exitosamente');
+        alert('Producto marcado como retirado exitosamente');
         cargarProductosVencimiento();
       }
     } catch (err) {
@@ -139,7 +139,7 @@ function GestionVencimientos() {
         {/* Header */}
         <div className="vencimiento-header">
           <div>
-            <h1 className="vencimiento-titulo">📦 Gestión de Vencimientos</h1>
+            <h1 className="vencimiento-titulo">Gestión de Vencimientos</h1>
             <p className="vencimiento-subtitulo">
               Monitorea productos próximos a vencer y controla la rotación de inventario de forma eficiente.
             </p>
@@ -156,9 +156,9 @@ function GestionVencimientos() {
               onChange={(e) => setFiltro(e.target.value)} 
               className="select-base"
             >
-              <option value="proximo">📅 Próximos a vencer</option>
-              <option value="vencido">⚠️ Vencidos</option>
-              <option value="todos">📋 Todos los productos</option>
+              <option value="proximo">Próximos a vencer</option>
+              <option value="vencido">Vencidos</option>
+              <option value="todos">Todos los productos</option>
             </select>
           </div>
 
@@ -180,7 +180,7 @@ function GestionVencimientos() {
             className="btn-refrescar"
             disabled={cargando}
           >
-            {cargando ? '⏳ Cargando...' : '🔄 Refrescar'}
+            {cargando ? 'Cargando...' : 'Refrescar'}
           </button>
         </div>
 
@@ -189,7 +189,7 @@ function GestionVencimientos() {
           {cargando ? (
             <div className="vencimiento-estado loading">
               <div className="spinner"></div>
-              <p>⏳ Cargando productos...</p>
+              <p>Cargando productos...</p>
             </div>
           ) : productos.length === 0 ? (
             <div className="vencimiento-estado empty">

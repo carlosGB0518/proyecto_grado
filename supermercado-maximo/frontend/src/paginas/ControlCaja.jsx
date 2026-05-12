@@ -116,7 +116,7 @@ const ControlCaja = () => {
 
     if (error) { setMensaje({ tipo: 'error', texto: 'Error al abrir caja: ' + error.message }); return; }
 
-    setMensaje({ tipo: 'exito', texto: '✅ Caja abierta. ¡Buen turno!' });
+    setMensaje({ tipo: 'exito', texto: 'Caja abierta. ¡Buen turno!' });
     setMontoApertura('');
     await inicializar();
   };
@@ -190,7 +190,7 @@ const ControlCaja = () => {
 
   if (cargando) return (
     <LayoutBase>
-      <div className="cc-cargando">⏳ Cargando estado de caja...</div>
+      <div className="cc-cargando">Cargando estado de caja...</div>
     </LayoutBase>
   );
 
@@ -198,7 +198,7 @@ const ControlCaja = () => {
     <LayoutBase>
       <div className="cc-container">
         <div className="cc-header">
-          <h1 className="cc-titulo">💰 Control de Caja</h1>
+          <h1 className="cc-titulo">Control de Caja</h1>
           <p className="cc-subtitulo">Apertura, cierre, arqueo y movimientos del turno.</p>
         </div>
 
@@ -272,15 +272,15 @@ const ControlCaja = () => {
               <>
                 {/* MOVIMIENTOS */}
                 <div className="card">
-                  <h2 className="cc-card-titulo">➕➖ Registrar Movimiento</h2>
+                  <h2 className="cc-card-titulo">Registrar Movimiento</h2>
                   <form onSubmit={registrarMovimiento} className="cc-form">
                     <div className="cc-form-row">
                       <div className="cc-campo">
                         <label>Tipo</label>
                         <select className="input-base" value={nuevoMov.tipo}
                           onChange={e => setNuevoMov(p => ({ ...p, tipo: e.target.value }))}>
-                          <option value="ingreso">⬆️ Ingreso</option>
-                          <option value="egreso">⬇️ Egreso</option>
+                          <option value="ingreso">Ingreso</option>
+                          <option value="egreso">Egreso</option>
                         </select>
                       </div>
                       <div className="cc-campo">
@@ -325,20 +325,20 @@ const ControlCaja = () => {
                 {!confirmandoCierre ? (
                   <div className="card cc-cierre-card">
                     <h2 className="cc-card-titulo" style={{ color: 'var(--color-rojo)' }}>
-                      🔒 Cerrar Turno
+                      Cerrar Turno
                     </h2>
                     <p style={{ fontSize: '0.88rem', color: 'var(--color-texto-suave)', marginBottom: '1rem' }}>
                       Dinero esperado en caja: <strong style={{ color: 'var(--color-verde)' }}>{fmt(resumen.esperado)}</strong>
                     </p>
                     <button type="button" className="btn-danger cc-btn-grande"
                       onClick={() => setConfirmando(true)}>
-                      🔒 Iniciar cierre de caja
+                      Iniciar cierre de caja
                     </button>
                   </div>
                 ) : (
                   <div className="card cc-cierre-card">
                     <h2 className="cc-card-titulo" style={{ color: 'var(--color-rojo)' }}>
-                      🔒 Confirmar Cierre
+                      Confirmar Cierre
                     </h2>
                     <form onSubmit={cerrarCaja} className="cc-form">
                       <div className="cc-campo">
@@ -384,7 +384,7 @@ const ControlCaja = () => {
           <div className="cc-panel-der">
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div className="cc-historial-header">
-                <h2>📋 Historial de Turnos</h2>
+                <h2>Historial de Turnos</h2>
                 <span style={{ fontSize: '0.78rem', color: 'var(--color-texto-suave)' }}>
                   Últimos {historial.length}
                 </span>

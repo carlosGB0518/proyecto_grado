@@ -103,7 +103,7 @@ function Clientes() {
       <div className="clientes-container">
         <div className="clientes-header">
           <div>
-            <h1 className="clientes-titulo">👥 Gestión de Clientes</h1>
+            <h1 className="clientes-titulo">Gestión de Clientes</h1>
             <p className="clientes-subtitulo">Registra clientes y administra su fidelización.</p>
           </div>
           <button className="btn-primary" onClick={abrirNuevo}>+ Nuevo Cliente</button>
@@ -156,7 +156,7 @@ function Clientes() {
         {clientePuntos && (
           <div className="modal-overlay" onClick={() => setClientePuntos(null)}>
             <div className="modal-content clientes-modal-puntos" onClick={e => e.stopPropagation()}>
-              <h2>⭐ Puntos — {clientePuntos.nombre}</h2>
+              <h2>Puntos — {clientePuntos.nombre}</h2>
               <div className="clientes-puntos-total">
                 <span className="clientes-puntos-numero">{clientePuntos.puntos || 0}</span>
                 <span>puntos acumulados</span>
@@ -215,7 +215,7 @@ function Clientes() {
                     <th>Identificación</th>
                     <th>Teléfono</th>
                     <th>Correo</th>
-                    <th>⭐ Puntos</th>
+                    <th>Puntos</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>

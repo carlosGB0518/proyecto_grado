@@ -205,7 +205,7 @@ const Reportes = () => {
       <div className="rep-container">
         <div className="rep-header">
           <div>
-            <h1 className="rep-titulo">📈 Reportes y Analítica</h1>
+            <h1 className="rep-titulo">Reportes y Analítica</h1>
             <p className="rep-subtitulo">Ventas, ingresos y productos del período seleccionado.</p>
           </div>
           <div className="rep-controles">
@@ -217,13 +217,13 @@ const Reportes = () => {
             </select>
             <button className="btn-secondary" onClick={exportarPDF}
               disabled={ventasPorDia.length === 0} style={{ whiteSpace: 'nowrap' }}>
-              📄 Exportar PDF
+              Exportar PDF
             </button>
           </div>
         </div>
 
         {cargando ? (
-          <div className="rep-cargando">⏳ Cargando datos de {periodoLabel[periodo].toLowerCase()}...</div>
+          <div className="rep-cargando">Cargando datos de {periodoLabel[periodo].toLowerCase()}...</div>
         ) : (
           <>
             {/* KPIs */}
@@ -249,19 +249,19 @@ const Reportes = () => {
             <div className="rep-graficas-grid">
               {/* Ventas por día */}
               <div className="card rep-grafica-card">
-                <h2 className="rep-grafica-titulo">📅 Ventas por Día</h2>
+                <h2 className="rep-grafica-titulo">Ventas por Día</h2>
                 <GraficaBarras datos={ventasPorDia} valorKey="total" etiquetaKey="dia" />
               </div>
 
               {/* Por método de pago */}
               <div className="card rep-grafica-card">
-                <h2 className="rep-grafica-titulo">💳 Por Método de Pago</h2>
+                <h2 className="rep-grafica-titulo">Por Método de Pago</h2>
                 <GraficaTorta datos={ventasPorMetodo} />
               </div>
 
               {/* Top productos */}
               <div className="card rep-grafica-card rep-grafica-full">
-                <h2 className="rep-grafica-titulo">🏆 Top 10 Productos Más Vendidos</h2>
+                <h2 className="rep-grafica-titulo">Top 10 Productos Más Vendidos</h2>
                 <TablaTop datos={topProductos} />
               </div>
             </div>

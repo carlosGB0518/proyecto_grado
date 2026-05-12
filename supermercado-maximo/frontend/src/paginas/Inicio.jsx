@@ -84,35 +84,35 @@ const Inicio = () => {
             disabled={estadisticas.cargando}
             className="inicio-btn-actualizar"
           >
-            {estadisticas.cargando ? '⏳ Actualizando...' : ' Actualizar'}
+            {estadisticas.cargando ? ' Actualizando...' : ' Actualizar'}
           </button>
         </div>
 
         {/* Tarjetas */}
         <div className="tarjetas-grid">
           <div className="tarjeta">
-            <p className="tarjeta-titulo">💰 Ventas del Día</p>
+            <p className="tarjeta-titulo"> Ventas del Día</p>
             <p className="tarjeta-dato ventas">
               {estadisticas.cargando ? '—' : `$${estadisticas.ventasDelDia.toLocaleString('es-CO')}`}
             </p>
           </div>
 
           <div className="tarjeta">
-            <p className="tarjeta-titulo">📦 Stock Bajo</p>
+            <p className="tarjeta-titulo"> Stock Bajo</p>
             <p className="tarjeta-dato stock">
               {estadisticas.cargando ? '—' : `${estadisticas.productosStockBajo} producto${estadisticas.productosStockBajo !== 1 ? 's' : ''}`}
             </p>
           </div>
 
           <div className="tarjeta">
-            <p className="tarjeta-titulo">👥 Clientes</p>
+            <p className="tarjeta-titulo"> Clientes</p>
             <p className="tarjeta-dato clientes">
               {estadisticas.cargando ? '—' : `${estadisticas.clientesRegistrados}`}
             </p>
           </div>
 
           <div className="tarjeta">
-            <p className="tarjeta-titulo">🏧 Cajas Abiertas</p>
+            <p className="tarjeta-titulo"> Cajas Abiertas</p>
             <p className="tarjeta-dato" style={{ color: estadisticas.cajasAbiertas > 0 ? 'var(--color-verde)' : 'var(--color-texto-suave)' }}>
               {estadisticas.cargando ? '—' : `${estadisticas.cajasAbiertas}`}
             </p>

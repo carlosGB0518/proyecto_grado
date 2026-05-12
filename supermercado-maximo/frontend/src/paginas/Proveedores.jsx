@@ -33,7 +33,7 @@ function FormularioProveedor({ onGuardar, proveedorEditando, cancelarEdicion }) 
       ({ error } = await supabase.from('proveedores').insert([form]));
     }
     if (error) {
-      alert('❌ Error al guardar proveedor: ' + error.message);
+      alert('Error al guardar proveedor: ' + error.message);
     } else {
       onGuardar?.();
       cancelarEdicion?.();
@@ -43,7 +43,7 @@ function FormularioProveedor({ onGuardar, proveedorEditando, cancelarEdicion }) 
   return (
     <div className="prov-form-card card">
       <h2 className="prov-form-titulo">
-        {proveedorEditando ? '✏️ Editar Proveedor' : '➕ Registrar Proveedor'}
+        {proveedorEditando ? 'Editar Proveedor' : 'Registrar Proveedor'}
       </h2>
       <form className="prov-form" onSubmit={guardar}>
         <div className="prov-form-grid">
@@ -111,7 +111,7 @@ function ListaProveedores({ proveedores, onEditar, onSeleccionar, seleccionado }
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <span className="prov-contador">{filtrados.length} proveedores</span>
           <button className="btn-secondary prov-btn-pdf" onClick={exportarPDF} style={{ fontSize: '0.82rem', padding: '5px 12px' }}>
-            📄 Exportar PDF
+            Exportar PDF
           </button>
         </div>
       </div>
@@ -166,7 +166,7 @@ function ProductosPorProveedor({ proveedorId, proveedorNombre }) {
 
   return (
     <div className="card prov-productos" style={{ marginTop: '1.25rem' }}>
-      <h3 className="prov-productos-titulo">📦 Productos de: <span>{proveedorNombre}</span></h3>
+      <h3 className="prov-productos-titulo">Productos de: <span>{proveedorNombre}</span></h3>
       {cargando ? (
         <p className="prov-estado">Cargando productos...</p>
       ) : productos.length === 0 ? (
@@ -208,7 +208,7 @@ const Proveedores = () => {
     <LayoutBase>
       <div className="prov-container">
         <div className="prov-page-header">
-          <h1 className="prov-titulo">🏭 Proveedores</h1>
+          <h1 className="prov-titulo">Proveedores</h1>
           <p className="prov-subtitulo">Administra los proveedores y consulta sus productos asociados.</p>
         </div>
 
