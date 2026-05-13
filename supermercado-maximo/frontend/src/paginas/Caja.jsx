@@ -22,6 +22,7 @@ const Caja = () => {
   const [clientes, setClientes]     = useState([]);
   const [clienteId, setClienteId]   = useState('');
   const [descuento, setDescuento]   = useState(0);
+  const [montoPagado, setMontoPagado] = useState(''); // Monto pagado en efectivo
   const [busquedaProd, setBusquedaProd] = useState(''); // filtro visual de productos
   const inputRef = useRef(null);
 
@@ -106,9 +107,18 @@ const Caja = () => {
   // Puntos que ganará el cliente (1 punto por cada $1.000)
   const puntosAGanar = clienteId ? Math.floor(total / 1000) : 0;
 
+  // Cálculo de cambio (solo si es efectivo)
+  const montoPagadoNum = metodoPago === 'efectivo' ? parseFloat(montoPagado) || 0 : total;
+  const cambio = montoPagadoNum - total;
+  const tieneMontoSuficiente = metodoPago === 'efectivo' ? cambio >= 0 : true;
+
   // ── Guardar venta ─────────────────────────────────────────────────
   const guardarVenta = async () => {
     if (carrito.length === 0) { setMensaje('⚠️ El carrito está vacío.'); return; }
+    if (metodoPago === 'efectivo' && !tieneMontoSuficiente) {
+      setMensaje('⚠️ El monto pagado no es suficiente para completar la venta.');
+      return;
+    }
     if (procesando) return;
     setProcesando(true);
     setMensaje('⏳ Procesando venta...');
@@ -205,8 +215,10 @@ const Caja = () => {
       setCodigo('');
       setClienteId('');
       setDescuento(0);
+      setMontoPagado(''); // Limpiar monto pagado
 
       let msgFinal = `✅ Venta #${ventaInsertada.id} registrada.`;
+      if (metodoPago === 'efectivo') msgFinal += ` Cambio: $${cambio.toLocaleString('es-CO')}.`;
       if (factOk) msgFinal += ' Factura electrónica emitida.';
       else        msgFinal += ' ⚠️ Factura pendiente (revisa Facturación).';
       if (puntosAGanar > 0) msgFinal += ` ⭐ +${puntosAGanar} puntos al cliente.`;
@@ -339,7 +351,10 @@ const Caja = () => {
               <div className="metodo-pago-grupo">
                 <label>Método de pago</label>
                 <select className="metodo-pago-select" value={metodoPago}
-                  onChange={e => setMetodoPago(e.target.value)}>
+                  onChange={e => {
+                    setMetodoPago(e.target.value);
+                    setMontoPagado(''); // Limpiar monto pagado al cambiar método
+                  }}>
                   <option value="efectivo"> Efectivo</option>
                   <option value="tarjeta"> Tarjeta</option>
                   <option value="nequi"> Nequi</option>
@@ -357,6 +372,31 @@ const Caja = () => {
                 />
               </div>
 
+              {/* Campo de Monto Pagado (solo para efectivo) */}
+              {metodoPago === 'efectivo' && (
+                <div className="metodo-pago-grupo">
+                  <label>Monto Pagado</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1000"
+                    className="metodo-pago-select"
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      borderColor: !tieneMontoSuficiente && montoPagado ? '#dc3545' : '#ccc',
+                    }}
+                    value={montoPagado}
+                    onChange={e => setMontoPagado(e.target.value)}
+                    placeholder="Ingresa monto recibido"
+                  />
+                  {montoPagado && !tieneMontoSuficiente && (
+                    <p style={{ color: '#dc3545', fontSize: '0.75rem', margin: '4px 0 0 0', fontWeight: 600 }}>
+                      ❌ Monto insuficiente
+                    </p>
+                  )}
+                </div>
+              )}
+
               {descuento > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.83rem', color: 'var(--color-texto-suave)', padding: '0 2px' }}>
                   <span>Subtotal: ${subtotal.toLocaleString('es-CO')}</span>
@@ -372,13 +412,32 @@ const Caja = () => {
                 </div>
               )}
 
+              {/* Mostrar cambio si es efectivo y hay monto pagado */}
+              {metodoPago === 'efectivo' && montoPagado && tieneMontoSuficiente && (
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: '0.9rem',
+                  backgroundColor: '#f0f8ff',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  borderLeft: '3px solid #28a745',
+                  margin: '8px 0',
+                }}>
+                  <span style={{ fontWeight: 600 }}>Cambio:</span>
+                  <span style={{ color: '#28a745', fontWeight: 700, fontSize: '1rem' }}>
+                    ${cambio.toLocaleString('es-CO')}
+                  </span>
+                </div>
+              )}
+
               <div className="total-display">
                 <span>TOTAL</span>
                 <span className="total-monto">${total.toLocaleString('es-CO')}</span>
               </div>
 
               <button className="caja-finalizar" onClick={guardarVenta}
-                disabled={carrito.length === 0 || procesando}>
+                disabled={carrito.length === 0 || procesando || !tieneMontoSuficiente}>
                 {procesando ? '⏳ Procesando...' : 'Finalizar venta'}
               </button>
 
