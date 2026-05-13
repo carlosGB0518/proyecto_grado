@@ -404,9 +404,9 @@ function GestionVencimientos() {
             <label>Filtro:</label>
             <select value={filtro} onChange={e => setFiltro(e.target.value)}
               className="select-base" disabled={actualizando}>
-              <option value="proximo">Próximos a vencer</option>
-              <option value="vencido">Vencidos</option>
               <option value="todos">Todos los productos</option>
+              <option value="vencido">Vencidos</option>
+              <option value="proximo">Próximos a vencer</option>
               <option value="sin_fecha">Sin fecha asignada</option>
             </select>
           </div>
