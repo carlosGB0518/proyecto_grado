@@ -1,20 +1,20 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 
-import RutaPrivada      from './componentes/RutaPrivada';
-import Login            from './paginas/Login';
-import Inicio           from './paginas/Inicio';
-import Caja             from './paginas/Caja';
-import ControlCaja      from './paginas/ControlCaja';
-import Inventario       from './paginas/Inventario';
-import Facturacion      from './paginas/Facturacion';
-import Proveedores      from './paginas/Proveedores';
-import Pedidos          from './paginas/Pedidos';
-import Ventas           from './paginas/Ventas';
-import Clientes         from './paginas/Clientes';
-import Reportes         from './paginas/Reportes';
-import GestionUsuarios  from './paginas/GestionUsuarios';
-import GestionVencimientos from './paginas/GestionVencimientos'; /*ruta fechas*/
-import ModalEditarVencimiento from './paginas/ModalEditarVencimiento';
+import RutaPrivada         from './componentes/RutaPrivada';
+import Login               from './paginas/Login';
+import Inicio              from './paginas/Inicio';
+import Caja                from './paginas/Caja';
+import ControlCaja         from './paginas/ControlCaja';
+import Inventario          from './paginas/Inventario';
+import Facturacion         from './paginas/Facturacion';
+import Proveedores         from './paginas/Proveedores';
+import Pedidos             from './paginas/Pedidos';
+import Ventas              from './paginas/Ventas';
+import Clientes            from './paginas/Clientes';
+import Reportes            from './paginas/Reportes';
+import GestionUsuarios     from './paginas/GestionUsuarios';
+import GestionVencimientos from './paginas/GestionVencimientos';
+// ModalEditarVencimiento ya no es una ruta — está embebido en GestionVencimientos
 
 function App() {
   return (
@@ -60,17 +60,9 @@ function App() {
           <Reportes />
         </RutaPrivada>
       } />
- 
-      
       <Route path="/vencimientos" element={
         <RutaPrivada roles={['supervisor','administrador']}>
           <GestionVencimientos />
-        </RutaPrivada>
-      } />
-
-      <Route path="/FechasVencimiento" element={
-        <RutaPrivada roles={['supervisor','administrador']}>
-          <ModalEditarVencimiento />
         </RutaPrivada>
       } />
 
@@ -96,7 +88,7 @@ function App() {
         </RutaPrivada>
       } />
 
-      {/* ── Comodín: cualquier ruta desconocida → login ─ */}
+      {/* ── Comodín ─────────────────────────────────── */}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );

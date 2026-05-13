@@ -35,7 +35,7 @@ const modulosPorRol = {
     { ruta: '/pedidos',     etiqueta: 'Pedidos' },
     { ruta: '/usuarios',    etiqueta: 'Usuarios'},
     { ruta: '/vencimientos',etiqueta: 'Vencimientos' },
-    { ruta: '/FechasVencimiento',etiqueta: 'Fechas de Vencimiento' },
+    
   ],
 };
 
