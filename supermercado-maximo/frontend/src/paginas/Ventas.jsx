@@ -275,9 +275,9 @@ function Ventas() {
                           : <span className="estado-activa">Activa</span>}
                       </td>
                       <td className="acciones">
-                        <button onClick={() => verDetalles(v)} className="btn-ver">👁️ Ver</button>
+                        <button onClick={() => verDetalles(v)} className="btn-ver">Ver</button>
                         {!v.anulada && puedeAnular && (
-                          <button onClick={() => anularVenta(v)} className="btn-anular">❌ Anular</button>
+                          <button onClick={() => anularVenta(v)} className="btn-anular">Anular</button>
                         )}
                       </td>
                     </tr>
