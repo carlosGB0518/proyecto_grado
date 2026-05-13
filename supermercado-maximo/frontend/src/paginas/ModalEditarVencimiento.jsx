@@ -83,9 +83,18 @@ function ModalEditarVencimiento({ productoId, productoNombre, onClose, onGuardar
         console.error('Error de Supabase:', err);
         setError('Error al guardar: ' + err.message);
       } else {
-        alert('Fechas guardadas exitosamente');
-        onGuardar(); // Actualiza la lista de productos
-        onClose();   // Cierra el modal
+        // Esperar un poco para asegurar que Supabase se sincroniza
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Llamar al callback para actualizar la lista padre
+        if (onGuardar) {
+          onGuardar();
+        }
+        
+        // Pequeno delay antes de cerrar para feedback visual
+        setTimeout(() => {
+          onClose();
+        }, 500);
       }
     } catch (err) {
       console.error('Error inesperado:', err);

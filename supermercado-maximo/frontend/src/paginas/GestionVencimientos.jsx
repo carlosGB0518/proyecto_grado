@@ -7,6 +7,7 @@ import '../estilos/GestionVencimientos.css';
 function GestionVencimientos() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [actualizando, setActualizando] = useState(false);
   const [filtro, setFiltro] = useState('proximo');
   const [diasAlerta, setDiasAlerta] = useState(7);
   const [totalAlerta, setTotalAlerta] = useState(0);
@@ -19,7 +20,13 @@ function GestionVencimientos() {
   }, [filtro, diasAlerta]);
 
   const cargarProductosVencimiento = async () => {
-    setCargando(true);
+    const wasFirstLoad = cargando;
+    if (wasFirstLoad) {
+      setCargando(true);
+    } else {
+      setActualizando(true);
+    }
+    
     try {
       const hoy = new Date().toISOString().split('T')[0];
       const fechaAlerta = new Date();
@@ -47,16 +54,21 @@ function GestionVencimientos() {
 
       if (error) {
         console.error('Error cargando productos:', error.message);
-        alert('Error al cargar productos: ' + error.message);
+        if (wasFirstLoad) {
+          alert('Error al cargar productos: ' + error.message);
+        }
       } else {
         setProductos(data || []);
         setTotalAlerta(data?.length || 0);
       }
     } catch (err) {
       console.error('Error:', err);
-      alert('Error inesperado: ' + err.message);
+      if (wasFirstLoad) {
+        alert('Error inesperado: ' + err.message);
+      }
     } finally {
       setCargando(false);
+      setActualizando(false);
     }
   };
 
@@ -155,6 +167,7 @@ function GestionVencimientos() {
               value={filtro} 
               onChange={(e) => setFiltro(e.target.value)} 
               className="select-base"
+              disabled={actualizando}
             >
               <option value="proximo">Próximos a vencer</option>
               <option value="vencido">Vencidos</option>
@@ -172,20 +185,22 @@ function GestionVencimientos() {
               value={diasAlerta}
               onChange={(e) => setDiasAlerta(Math.max(1, parseInt(e.target.value) || 1))}
               className="input-base"
+              disabled={actualizando}
             />
           </div>
 
           <button 
             onClick={cargarProductosVencimiento} 
-            className="btn-refrescar"
-            disabled={cargando}
+            className={`btn-refrescar ${actualizando ? 'actualizando' : ''}`}
+            disabled={cargando || actualizando}
+            title={actualizando ? 'Sincronizando datos...' : 'Refrescar'}
           >
-            {cargando ? 'Cargando...' : 'Refrescar'}
+            {actualizando ? '⟳ Sincronizando...' : cargando ? 'Cargando...' : '⟳ Refrescar'}
           </button>
         </div>
 
         {/* Tabla de Productos */}
-        <div className="card tabla-card">
+        <div className={`card tabla-card ${actualizando ? 'sincronizando' : ''}`}>
           {cargando ? (
             <div className="vencimiento-estado loading">
               <div className="spinner"></div>
@@ -196,80 +211,89 @@ function GestionVencimientos() {
               <p>✅ No hay productos que mostrar en este filtro.</p>
             </div>
           ) : (
-            <div className="vencimiento-tabla-wrapper">
-              <table className="tabla-base">
-                <thead>
-                  <tr>
-                    <th>Código</th>
-                    <th>Nombre Producto</th>
-                    <th>Lote</th>
-                    <th>Fecha Entrada</th>
-                    <th>Fecha Vencimiento</th>
-                    <th>Días Restantes</th>
-                    <th>Stock</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {productos.map((p) => {
-                    const dias = diasRestantes(p.fecha_vencimiento);
-                    return (
-                      <tr 
-                        key={p.id} 
-                        className={`row-${obtenerBadgeClass(dias)}`}
-                        style={{ borderLeft: `4px solid ${obtenerColor(dias)}` }}
-                      >
-                        <td className="ven-codigo">{p.codigo || '—'}</td>
-                        <td className="ven-nombre">{p.nombre || '—'}</td>
-                        <td className="ven-lote">{p.numero_lote || '—'}</td>
-                        <td className="ven-fecha">{fmt(p.fecha_entrada)}</td>
-                        <td className="ven-fecha">{fmt(p.fecha_vencimiento)}</td>
-                        <td>
-                          <span
-                            className={`ven-dias ${obtenerBadgeClass(dias)}`}
-                            style={{ 
-                              backgroundColor: obtenerColor(dias),
-                              color: '#fff',
-                            }}
-                          >
-                            {dias === null ? '—' : dias < 0 ? `${Math.abs(dias)}d atrás` : `${dias}d`}
-                          </span>
-                        </td>
-                        <td className="ven-stockactual">{p.stockactual || 0}</td>
-                        <td>
-                          <span className={`ven-badge ven-badge-${p.estado_producto || 'disponible'}`}>
-                            {p.estado_producto || 'disponible'}
-                          </span>
-                        </td>
-                        <td className="ven-acciones">
-                          <button
-                            onClick={() => abrirModalEditar(p)}
-                            className="btn-editar"
-                            title="Editar fechas de vencimiento"
-                          >
-                            ✏️ Editar
-                          </button>
-                          {p.estado_producto !== 'retirado' && (
-                            <button
-                              onClick={() => {
-                                if (window.confirm(`¿Marcar "${p.nombre}" como retirado?`)) {
-                                  marcarRetirado(p.id);
-                                }
+            <>
+              {actualizando && (
+                <div className="sincronizacion-banner">
+                  <span className="sincro-indicator">⟳</span> Sincronizando cambios...
+                </div>
+              )}
+              <div className="vencimiento-tabla-wrapper">
+                <table className="tabla-base">
+                  <thead>
+                    <tr>
+                      <th>Código</th>
+                      <th>Nombre Producto</th>
+                      <th>Lote</th>
+                      <th>Fecha Entrada</th>
+                      <th>Fecha Vencimiento</th>
+                      <th>Días Restantes</th>
+                      <th>Stock</th>
+                      <th>Estado</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {productos.map((p) => {
+                      const dias = diasRestantes(p.fecha_vencimiento);
+                      return (
+                        <tr 
+                          key={p.id} 
+                          className={`row-${obtenerBadgeClass(dias)}`}
+                          style={{ borderLeft: `4px solid ${obtenerColor(dias)}` }}
+                        >
+                          <td className="ven-codigo">{p.codigo || '—'}</td>
+                          <td className="ven-nombre">{p.nombre || '—'}</td>
+                          <td className="ven-lote">{p.numero_lote || '—'}</td>
+                          <td className="ven-fecha">{fmt(p.fecha_entrada)}</td>
+                          <td className="ven-fecha">{fmt(p.fecha_vencimiento)}</td>
+                          <td>
+                            <span
+                              className={`ven-dias ${obtenerBadgeClass(dias)}`}
+                              style={{ 
+                                backgroundColor: obtenerColor(dias),
+                                color: '#fff',
                               }}
-                              className="btn-retirar"
-                              title="Marcar como retirado de estantería"
                             >
-                              🗑️ Retirar
+                              {dias === null ? '—' : dias < 0 ? `${Math.abs(dias)}d atrás` : `${dias}d`}
+                            </span>
+                          </td>
+                          <td className="ven-stockactual">{p.stockactual || 0}</td>
+                          <td>
+                            <span className={`ven-badge ven-badge-${p.estado_producto || 'disponible'}`}>
+                              {p.estado_producto || 'disponible'}
+                            </span>
+                          </td>
+                          <td className="ven-acciones">
+                            <button
+                              onClick={() => abrirModalEditar(p)}
+                              className="btn-editar"
+                              title="Editar fechas de vencimiento"
+                              disabled={actualizando}
+                            >
+                              ✏️ Editar
                             </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                            {p.estado_producto !== 'retirado' && (
+                              <button
+                                onClick={() => {
+                                  if (window.confirm(`¿Marcar "${p.nombre}" como retirado?`)) {
+                                    marcarRetirado(p.id);
+                                  }
+                                }}
+                                className="btn-retirar"
+                                title="Marcar como retirado de estantería"
+                                disabled={actualizando}
+                              >
+                                🗑️ Retirar
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
 
