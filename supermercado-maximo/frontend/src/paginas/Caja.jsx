@@ -260,7 +260,7 @@ const Caja = () => {
               type="text"
               placeholder="Filtrar productos por nombre..."
               className="caja-input"
-              style={{ marginBottom: '0.75rem' }}
+              style={{ marginBottom: '0.5rem' }}
               value={busquedaProd}
               onChange={e => setBusquedaProd(e.target.value)}
             />
