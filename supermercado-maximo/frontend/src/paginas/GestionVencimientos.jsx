@@ -3,11 +3,13 @@ import { supabase } from '../supabase';
 import LayoutBase from '../layouts/LayoutBase';
 import '../estilos/GestionVencimientos.css';
 
-// ── Helpers ───────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────────
 const diasRestantes = (fecha) => {
   if (!fecha) return null;
-  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-  const venc = new Date(fecha); venc.setHours(0, 0, 0, 0);
+  const hoy  = new Date(); hoy.setHours(0, 0, 0, 0);
+  const venc = new Date(fecha + 'T00:00:00'); venc.setHours(0, 0, 0, 0);
   return Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
 };
 
@@ -25,29 +27,29 @@ const colorDias = (dias) => ({
   critico:     '#E65100',
   proximo:     '#F9A825',
   ok:          '#2E7D32',
-}[estadoDias(dias)] || '#9E9E9E');
+}[estadoDias(dias)]);
 
 const fmt = (f) => !f ? '—' : new Date(f + 'T00:00:00').toLocaleDateString('es-CO', {
   year: 'numeric', month: 'short', day: 'numeric',
 });
 
 const LabelDias = ({ dias }) => {
-  const estado = estadoDias(dias);
-  const texto = dias === null ? 'Sin fecha'
-    : dias < 0   ? `Venció hace ${Math.abs(dias)}d`
-    : dias === 0 ? 'Vence hoy'
-    : `${dias} día${dias !== 1 ? 's' : ''}`;
-  return (
-    <span className={`ven-dias-badge ven-${estado}`}>{texto}</span>
-  );
+  const texto =
+    dias === null ? 'Sin fecha' :
+    dias < 0     ? `Venció hace ${Math.abs(dias)}d` :
+    dias === 0   ? 'Vence hoy' :
+                   `${dias}d restante${dias !== 1 ? 's' : ''}`;
+  return <span className={`ven-dias-badge ven-${estadoDias(dias)}`}>{texto}</span>;
 };
 
-// ── Formulario de lote ────────────────────────────────────────────
-const LOTE_VACIO = { numero_lote: '', fecha_entrada: '', fecha_vencimiento: '', cantidad: '' };
+// ─────────────────────────────────────────────────────────────────
+// FORMULARIO DE LOTE
+// ─────────────────────────────────────────────────────────────────
+const LOTE_VACIO = { numero_lote: '', fecha_entrada: '', fecha_vencimiento: '', cantidad: '0', estado: 'disponible' };
 
 function FormLote({ productoId, onGuardado, loteEditando, onCancelarEdicion }) {
-  const [form, setForm] = useState(loteEditando || LOTE_VACIO);
-  const [error, setError] = useState('');
+  const [form, setForm]       = useState(loteEditando || LOTE_VACIO);
+  const [error, setError]     = useState('');
   const [guardando, setGuardando] = useState(false);
   const editando = !!loteEditando;
 
@@ -64,20 +66,22 @@ function FormLote({ productoId, onGuardado, loteEditando, onCancelarEdicion }) {
   const guardar = async (e) => {
     e.preventDefault();
     if (!form.fecha_vencimiento) { setError('La fecha de vencimiento es obligatoria.'); return; }
-    if (!form.cantidad || parseInt(form.cantidad) < 0) { setError('La cantidad debe ser 0 o mayor.'); return; }
-    if (form.fecha_entrada && form.fecha_vencimiento &&
-        new Date(form.fecha_vencimiento) <= new Date(form.fecha_entrada)) {
-      setError('La fecha de vencimiento debe ser posterior a la fecha de entrada.'); return;
+    const cant = parseInt(form.cantidad);
+    if (isNaN(cant) || cant < 0) { setError('La cantidad debe ser 0 o mayor.'); return; }
+    if (form.fecha_entrada && new Date(form.fecha_vencimiento) <= new Date(form.fecha_entrada)) {
+      setError('La fecha de vencimiento debe ser posterior a la de entrada.'); return;
     }
+
     setGuardando(true);
     const payload = {
-      producto_id:      productoId,
-      numero_lote:      form.numero_lote || null,
-      fecha_entrada:    form.fecha_entrada || null,
+      producto_id:       productoId,
+      numero_lote:       form.numero_lote || null,
+      fecha_entrada:     form.fecha_entrada || null,
       fecha_vencimiento: form.fecha_vencimiento,
-      cantidad:         parseInt(form.cantidad) || 0,
-      estado:           form.estado || 'disponible',
+      cantidad:          cant,
+      estado:            form.estado || 'disponible',
     };
+
     let err;
     if (editando) {
       ({ error: err } = await supabase.from('lotes').update(payload).eq('id', loteEditando.id));
@@ -85,6 +89,7 @@ function FormLote({ productoId, onGuardado, loteEditando, onCancelarEdicion }) {
       ({ error: err } = await supabase.from('lotes').insert([payload]));
     }
     setGuardando(false);
+
     if (err) { setError('Error al guardar: ' + err.message); return; }
     setForm(LOTE_VACIO);
     onGuardado?.();
@@ -97,15 +102,15 @@ function FormLote({ productoId, onGuardado, loteEditando, onCancelarEdicion }) {
         <div className="form-lote-campo">
           <label>N° Lote</label>
           <input type="text" name="numero_lote" className="input-base"
-            placeholder="Ej: LOTE-2024-001" value={form.numero_lote} onChange={cambiar} />
+            placeholder="Ej: LOTE-2025-001" value={form.numero_lote} onChange={cambiar} />
         </div>
         <div className="form-lote-campo">
-          <label>Fecha Entrada</label>
+          <label>Fecha de Entrada</label>
           <input type="date" name="fecha_entrada" className="input-base"
             value={form.fecha_entrada} onChange={cambiar} />
         </div>
         <div className="form-lote-campo">
-          <label>Fecha Vencimiento *</label>
+          <label>Fecha de Vencimiento *</label>
           <input type="date" name="fecha_vencimiento" className="input-base"
             value={form.fecha_vencimiento} onChange={cambiar} required />
         </div>
@@ -116,8 +121,8 @@ function FormLote({ productoId, onGuardado, loteEditando, onCancelarEdicion }) {
         </div>
         {editando && (
           <div className="form-lote-campo">
-            <label>Estado</label>
-            <select name="estado" className="input-base" value={form.estado || 'disponible'} onChange={cambiar}>
+            <label>Estado del lote</label>
+            <select name="estado" className="input-base" value={form.estado} onChange={cambiar}>
               <option value="disponible">Disponible</option>
               <option value="retirado">Retirado</option>
               <option value="agotado">Agotado</option>
@@ -140,12 +145,14 @@ function FormLote({ productoId, onGuardado, loteEditando, onCancelarEdicion }) {
   );
 }
 
-// ── Panel expandible de lotes de un producto ──────────────────────
-function PanelLotes({ producto, abierto, onToggle }) {
-  const [lotes, setLotes] = useState([]);
-  const [cargando, setCargando] = useState(false);
+// ─────────────────────────────────────────────────────────────────
+// PANEL DE LOTES (expandible por producto)
+// ─────────────────────────────────────────────────────────────────
+function PanelLotes({ producto, onActualizarPadre }) {
+  const [lotes, setLotes]           = useState([]);
+  const [cargando, setCargando]     = useState(true);
   const [loteEditando, setLoteEditando] = useState(null);
-  const [guardandoPrincipal, setGuardandoPrincipal] = useState(false);
+  const [sincronizando, setSincronizando] = useState(false);
 
   const cargarLotes = useCallback(async () => {
     setCargando(true);
@@ -158,57 +165,56 @@ function PanelLotes({ producto, abierto, onToggle }) {
     setCargando(false);
   }, [producto.id]);
 
-  useEffect(() => {
-    if (abierto) cargarLotes();
-  }, [abierto, cargarLotes]);
+  useEffect(() => { cargarLotes(); }, [cargarLotes]);
 
-  const eliminarLote = async (id) => {
-    if (!window.confirm('¿Eliminar este lote?')) return;
-    await supabase.from('lotes').delete().eq('id', id);
-    cargarLotes();
-  };
-
-  const retirarLote = async (id) => {
-    await supabase.from('lotes').update({ estado: 'retirado' }).eq('id', id);
-    cargarLotes();
-  };
-
-  // Actualizar fecha_vencimiento principal del producto (el lote más próximo)
-  const sincronizarFechaPrincipal = async (lotesActuales) => {
+  // Sincroniza fecha_vencimiento principal del producto con el lote más próximo disponible
+  const sincronizarPrincipal = async (lotesActuales) => {
     const disponibles = lotesActuales.filter(l => l.estado === 'disponible' && l.fecha_vencimiento);
     if (disponibles.length === 0) return;
     const masProximo = disponibles.reduce((min, l) =>
       new Date(l.fecha_vencimiento) < new Date(min.fecha_vencimiento) ? l : min
     );
-    setGuardandoPrincipal(true);
+    setSincronizando(true);
     await supabase.from('productos').update({
       fecha_vencimiento: masProximo.fecha_vencimiento,
       fecha_entrada:     masProximo.fecha_entrada || null,
-      numero_lote:       masProximo.numero_lote || null,
+      numero_lote:       masProximo.numero_lote   || null,
     }).eq('id', producto.id);
-    setGuardandoPrincipal(false);
+    setSincronizando(false);
   };
 
   const onGuardado = async () => {
     await cargarLotes();
-    // Refrescar desde DB para sincronizar
     const { data } = await supabase.from('lotes').select('*')
       .eq('producto_id', producto.id).order('fecha_vencimiento');
     if (data) {
       setLotes(data);
-      await sincronizarFechaPrincipal(data);
+      await sincronizarPrincipal(data);
     }
+    onActualizarPadre?.();
   };
 
-  if (!abierto) return null;
+  const eliminarLote = async (id) => {
+    if (!window.confirm('¿Eliminar este lote?')) return;
+    await supabase.from('lotes').delete().eq('id', id);
+    onGuardado();
+  };
+
+  const retirarLote = async (id) => {
+    if (!window.confirm('¿Marcar este lote como retirado?')) return;
+    await supabase.from('lotes').update({ estado: 'retirado' }).eq('id', id);
+    onGuardado();
+  };
 
   return (
     <div className="panel-lotes">
       <div className="panel-lotes-inner">
-        {/* Agregar / editar lote */}
+
+        {/* ── Columna izquierda: formulario ── */}
         <div className="panel-lotes-form-section">
           <h4 className="panel-lotes-subtitulo">
             {loteEditando ? '✏️ Editando lote' : '➕ Agregar nuevo lote'}
+            {sincronizando && <span className="sincro-label"> · sincronizando...</span>}
           </h4>
           <FormLote
             productoId={producto.id}
@@ -218,16 +224,24 @@ function PanelLotes({ producto, abierto, onToggle }) {
           />
         </div>
 
-        {/* Lista de lotes */}
+        {/* ── Columna derecha: lista de lotes ── */}
         <div className="panel-lotes-lista-section">
           <h4 className="panel-lotes-subtitulo">
             📦 Lotes registrados
-            {guardandoPrincipal && <span className="sincro-label"> — sincronizando...</span>}
+            {!cargando && <span style={{ fontWeight: 400, color: 'var(--color-texto-suave)', fontSize: '0.82rem' }}>
+              {' '}({lotes.length})
+            </span>}
           </h4>
+
           {cargando ? (
             <p className="panel-lotes-vacio">Cargando lotes...</p>
           ) : lotes.length === 0 ? (
-            <p className="panel-lotes-vacio">No hay lotes registrados. Agrega uno con el formulario.</p>
+            <div className="panel-lotes-vacio">
+              <p>No hay lotes registrados.</p>
+              <p style={{ fontSize: '0.82rem', marginTop: '0.25rem' }}>
+                Usa el formulario de la izquierda para agregar el primer lote.
+              </p>
+            </div>
           ) : (
             <div className="panel-lotes-tabla-wrapper">
               <table className="tabla-base panel-lotes-tabla">
@@ -237,15 +251,14 @@ function PanelLotes({ producto, abierto, onToggle }) {
                     <th>Entrada</th>
                     <th>Vencimiento</th>
                     <th>Días</th>
-                    <th>Cantidad</th>
+                    <th>Cant.</th>
                     <th>Estado</th>
-                    <th>Acciones</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   {lotes.map(l => {
                     const dias = diasRestantes(l.fecha_vencimiento);
-                    const estado = estadoDias(dias);
                     return (
                       <tr key={l.id}
                         className={`lote-fila lote-fila-${l.estado} ${loteEditando?.id === l.id ? 'lote-editando' : ''}`}
@@ -284,45 +297,126 @@ function PanelLotes({ producto, abierto, onToggle }) {
   );
 }
 
-// ── Componente principal ──────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// FILA DE PRODUCTO (reutilizable en tabla principal y sin-fecha)
+// ─────────────────────────────────────────────────────────────────
+function FilaProducto({ p, panelAbierto, onToggle, onRetirar, onActualizarPadre }) {
+  const dias   = diasRestantes(p.fecha_vencimiento);
+  const abierto = panelAbierto === p.id;
+
+  return (
+    <>
+      <tr
+        className={`ven-fila ven-fila-${estadoDias(dias)} ${abierto ? 'ven-fila-activa' : ''}`}
+        style={{ borderLeft: `4px solid ${colorDias(dias)}` }}
+      >
+        <td className="ven-toggle-cell">
+          <button
+            className={`btn-toggle-lotes ${abierto ? 'abierto' : ''}`}
+            onClick={() => onToggle(p.id)}
+            title={abierto ? 'Ocultar lotes' : 'Gestionar lotes y fechas'}
+          >
+            {abierto ? '▼' : '▶'}
+          </button>
+        </td>
+        <td className="ven-codigo">{p.codigo || '—'}</td>
+        <td className="ven-nombre">{p.nombre}</td>
+        <td className="ven-lote">{p.numero_lote || '—'}</td>
+        <td className="ven-fecha">{fmt(p.fecha_entrada)}</td>
+        <td className="ven-fecha">{fmt(p.fecha_vencimiento)}</td>
+        <td><LabelDias dias={dias} /></td>
+        <td className="ven-stock">{p.stockactual ?? 0}</td>
+        <td>
+          <span className={`ven-badge ven-badge-${p.estado_producto || 'disponible'}`}>
+            {p.estado_producto || 'disponible'}
+          </span>
+        </td>
+        <td className="ven-acciones">
+          {p.estado_producto !== 'retirado' && (
+            <button className="btn-retirar"
+              onClick={() => onRetirar(p.id, p.nombre)}
+              title="Marcar producto como retirado">
+              📤 Retirar
+            </button>
+          )}
+        </td>
+      </tr>
+
+      {abierto && (
+        <tr className="ven-fila-panel">
+          <td colSpan="10" style={{ padding: 0 }}>
+            <PanelLotes producto={p} onActualizarPadre={onActualizarPadre} />
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// COMPONENTE PRINCIPAL
+// ─────────────────────────────────────────────────────────────────
 function GestionVencimientos() {
-  const [productos, setProductos]   = useState([]);
-  const [cargando, setCargando]     = useState(true);
-  const [actualizando, setActualizando] = useState(false);
-  const [filtro, setFiltro]         = useState('proximo');
-  const [diasAlerta, setDiasAlerta] = useState(7);
-  const [panelAbierto, setPanelAbierto] = useState(null); // id del producto expandido
-  const [busqueda, setBusqueda]     = useState('');
+  const [productos, setProductos]             = useState([]);
+  const [productosSinFecha, setSinFecha]      = useState([]);
+  const [cargando, setCargando]               = useState(true);
+  const [actualizando, setActualizando]       = useState(false);
+  const [filtro, setFiltro]                   = useState('todos');   // default: todos
+  const [diasAlerta, setDiasAlerta]           = useState(30);        // default: 30 días
+  const [panelAbierto, setPanelAbierto]       = useState(null);
+  const [busqueda, setBusqueda]               = useState('');
+  const [sinFechaColapsado, setSinFechaColapsado] = useState(false);
 
-  // Estado de producto desde el modal directo
-  const [editandoFechaPrincipal, setEditandoFechaPrincipal] = useState(null);
+  const cargarProductos = useCallback(async (esManual = false) => {
+    if (esManual) setActualizando(true);
+    else setCargando(true);
 
-  const cargarProductos = useCallback(async () => {
-    if (!cargando) setActualizando(true);
     try {
       const hoy = new Date().toISOString().split('T')[0];
       const fechaLimite = new Date();
       fechaLimite.setDate(fechaLimite.getDate() + diasAlerta);
       const fechaLimiteStr = fechaLimite.toISOString().split('T')[0];
 
+      // Query principal (según filtro)
       let query = supabase
         .from('productos')
         .select('id, nombre, codigo, fecha_vencimiento, fecha_entrada, numero_lote, estado_producto, stockactual')
         .eq('activo', true);
 
       if (filtro === 'proximo') {
-        query = query.gte('fecha_vencimiento', hoy).lte('fecha_vencimiento', fechaLimiteStr)
+        query = query
+          .not('fecha_vencimiento', 'is', null)
+          .gte('fecha_vencimiento', hoy)
+          .lte('fecha_vencimiento', fechaLimiteStr)
           .neq('estado_producto', 'retirado');
       } else if (filtro === 'vencido') {
-        query = query.lt('fecha_vencimiento', hoy).neq('estado_producto', 'retirado');
+        query = query
+          .not('fecha_vencimiento', 'is', null)
+          .lt('fecha_vencimiento', hoy)
+          .neq('estado_producto', 'retirado');
       } else if (filtro === 'sin_fecha') {
-        query = query.is('fecha_vencimiento', null);
+        query = query.is('fecha_vencimiento', null).neq('estado_producto', 'retirado');
+      } else {
+        // 'todos': todos excepto retirados
+        query = query.neq('estado_producto', 'retirado');
       }
-      // 'todos' no agrega filtros de fecha
 
-      const { data, error } = await query.order('fecha_vencimiento', { ascending: true, nullsLast: true });
-      if (!error) setProductos(data || []);
-      else console.error('Error:', error.message);
+      const [{ data: principales }, { data: sinFecha }] = await Promise.all([
+        query.order('fecha_vencimiento', { ascending: true, nullsLast: true }),
+        // Siempre traer sin fecha (para el banner superior)
+        supabase.from('productos')
+          .select('id, nombre, codigo, fecha_vencimiento, fecha_entrada, numero_lote, estado_producto, stockactual')
+          .eq('activo', true)
+          .is('fecha_vencimiento', null)
+          .neq('estado_producto', 'retirado')
+          .order('nombre'),
+      ]);
+
+      setProductos(principales || []);
+      // Solo mostrar sin-fecha en el banner si el filtro NO es 'sin_fecha' (para no duplicar)
+      setSinFecha(filtro !== 'sin_fecha' ? (sinFecha || []) : []);
+    } catch (err) {
+      console.error('Error cargando:', err);
     } finally {
       setCargando(false);
       setActualizando(false);
@@ -331,50 +425,65 @@ function GestionVencimientos() {
 
   useEffect(() => { cargarProductos(); }, [cargarProductos]);
 
-  const marcarRetiradoProducto = async (id, nombre) => {
-    if (!window.confirm(`¿Marcar "${nombre}" como retirado?\nEsto lo ocultará del inventario activo.`)) return;
+  const marcarRetirado = async (id, nombre) => {
+    if (!window.confirm(`¿Marcar "${nombre}" como retirado?\nDejará de aparecer en el inventario activo.`)) return;
     await supabase.from('productos').update({ estado_producto: 'retirado' }).eq('id', id);
     cargarProductos();
   };
 
   const togglePanel = (id) => {
     setPanelAbierto(prev => prev === id ? null : id);
-    setEditandoFechaPrincipal(null);
   };
 
-  // Filtro de búsqueda por nombre o código
-  const productosFiltrados = productos.filter(p =>
-    !busqueda ||
+  // Filtro de texto
+  const filtrar = (lista) => !busqueda ? lista : lista.filter(p =>
     p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
     p.codigo?.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  // Contadores para las tarjetas de estadísticas
-  const contar = (estado) => productos.filter(p => estadoDias(diasRestantes(p.fecha_vencimiento)) === estado).length;
-  const sinFecha = productos.filter(p => !p.fecha_vencimiento).length;
+  // Contadores para estadísticas (sobre TODOS los productos cargados)
+  const todos = [...productos, ...(filtro !== 'sin_fecha' ? productosSinFecha : [])];
+  const contar = (est) => todos.filter(p => estadoDias(diasRestantes(p.fecha_vencimiento)) === est).length;
+
+  const encabezadoTabla = (
+    <thead>
+      <tr>
+        <th style={{ width: '32px' }} />
+        <th>Código</th>
+        <th>Nombre</th>
+        <th>N° Lote</th>
+        <th>Entrada</th>
+        <th>Vencimiento</th>
+        <th>Días</th>
+        <th>Stock</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+  );
 
   return (
     <LayoutBase>
       <div className="vencimiento-container">
 
-        {/* Header */}
+        {/* ── Header ── */}
         <div className="vencimiento-header">
           <div>
             <h1 className="vencimiento-titulo">📅 Gestión de Vencimientos</h1>
             <p className="vencimiento-subtitulo">
-              Monitorea y gestiona fechas de vencimiento por producto y por lote.
+              Haz clic en <strong>▶</strong> en cualquier producto para agregar o editar sus lotes y fechas.
             </p>
           </div>
           <button
             className={`btn-refrescar ${actualizando ? 'actualizando' : ''}`}
-            onClick={cargarProductos}
+            onClick={() => cargarProductos(true)}
             disabled={cargando || actualizando}
           >
             {actualizando ? '⟳ Actualizando...' : '⟳ Refrescar'}
           </button>
         </div>
 
-        {/* Estadísticas */}
+        {/* ── Estadísticas ── */}
         <div className="vencimiento-estadisticas">
           <div className="stat-item stat-vencido">
             <div className="stat-numero">{contar('vencido')}</div>
@@ -382,31 +491,31 @@ function GestionVencimientos() {
           </div>
           <div className="stat-item stat-critico">
             <div className="stat-numero">{contar('critico')}</div>
-            <div className="stat-label">Crítico (0–3 días)</div>
+            <div className="stat-label">Crítico (0–3d)</div>
           </div>
           <div className="stat-item stat-proximo">
             <div className="stat-numero">{contar('proximo')}</div>
-            <div className="stat-label">Próximos (4–{diasAlerta} días)</div>
+            <div className="stat-label">Próximos (4–{diasAlerta}d)</div>
           </div>
           <div className="stat-item stat-ok">
             <div className="stat-numero">{contar('ok')}</div>
             <div className="stat-label">Vigentes</div>
           </div>
           <div className="stat-item stat-sin-fecha">
-            <div className="stat-numero">{sinFecha}</div>
+            <div className="stat-numero">{productosSinFecha.length + (filtro === 'sin_fecha' ? productos.length : 0)}</div>
             <div className="stat-label">Sin fecha</div>
           </div>
         </div>
 
-        {/* Controles */}
+        {/* ── Controles ── */}
         <div className="vencimiento-controles card">
           <div className="ctrl-grupo">
             <label>Filtro:</label>
             <select value={filtro} onChange={e => setFiltro(e.target.value)}
               className="select-base" disabled={actualizando}>
               <option value="todos">Todos los productos</option>
-              <option value="vencido">Vencidos</option>
               <option value="proximo">Próximos a vencer</option>
+              <option value="vencido">Vencidos</option>
               <option value="sin_fecha">Sin fecha asignada</option>
             </select>
           </div>
@@ -414,112 +523,98 @@ function GestionVencimientos() {
             <label>Días de alerta:</label>
             <input type="number" min="1" max="90" value={diasAlerta}
               onChange={e => setDiasAlerta(Math.max(1, parseInt(e.target.value) || 1))}
-              className="input-base" disabled={actualizando} />
+              className="input-base" style={{ width: '80px' }} disabled={actualizando} />
           </div>
           <div className="ctrl-grupo ctrl-busqueda">
-            <label>Buscar:</label>
-            <input type="text" placeholder="Nombre o código..." value={busqueda}
-              onChange={e => setBusqueda(e.target.value)} className="input-base" />
+            <label>Buscar producto:</label>
+            <input type="text" placeholder="Nombre o código..."
+              value={busqueda} onChange={e => setBusqueda(e.target.value)}
+              className="input-base" />
           </div>
         </div>
 
-        {/* Leyenda */}
+        {/* ── BANNER: Productos sin fecha (siempre visible si existen) ── */}
+        {productosSinFecha.length > 0 && (
+          <div className="sin-fecha-banner card">
+            <div className="sin-fecha-banner-header"
+              onClick={() => setSinFechaColapsado(p => !p)}
+              style={{ cursor: 'pointer' }}>
+              <div>
+                <span className="sin-fecha-icono">⚠️</span>
+                <span className="sin-fecha-titulo">
+                  {productosSinFecha.length} producto{productosSinFecha.length !== 1 ? 's' : ''} sin fecha de vencimiento asignada
+                </span>
+              </div>
+              <span className="sin-fecha-toggle">{sinFechaColapsado ? '▼ Mostrar' : '▲ Ocultar'}</span>
+            </div>
+
+            {!sinFechaColapsado && (
+              <div className="sin-fecha-tabla-wrapper">
+                <p className="sin-fecha-hint">
+                  Haz clic en <strong>▶</strong> para expandir el panel de lotes y asignar la fecha de vencimiento.
+                </p>
+                <table className="tabla-base">
+                  {encabezadoTabla}
+                  <tbody>
+                    {filtrar(productosSinFecha).map(p => (
+                      <FilaProducto
+                        key={p.id}
+                        p={p}
+                        panelAbierto={panelAbierto}
+                        onToggle={togglePanel}
+                        onRetirar={marcarRetirado}
+                        onActualizarPadre={() => cargarProductos(true)}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Leyenda ── */}
         <div className="vencimiento-leyenda">
-          <span className="leyenda-item"><span className="dot dot-vencido"/>Vencido</span>
-          <span className="leyenda-item"><span className="dot dot-critico"/>Crítico (0–3d)</span>
-          <span className="leyenda-item"><span className="dot dot-proximo"/>Próximo (4–7d)</span>
-          <span className="leyenda-item"><span className="dot dot-ok"/>Vigente</span>
-          <span className="leyenda-item"><span className="dot dot-sin-fecha"/>Sin fecha</span>
-          <span className="leyenda-tip">
-            💡 Haz clic en <strong>▶ Lotes</strong> para gestionar lotes de un producto
-          </span>
+          <span className="leyenda-item"><span className="dot dot-vencido" />Vencido</span>
+          <span className="leyenda-item"><span className="dot dot-critico" />Crítico (0–3d)</span>
+          <span className="leyenda-item"><span className="dot dot-proximo" />Próximo</span>
+          <span className="leyenda-item"><span className="dot dot-ok" />Vigente</span>
+          <span className="leyenda-item"><span className="dot dot-sin-fecha" />Sin fecha</span>
+          <span className="leyenda-tip">💡 Clic en <strong>▶</strong> para gestionar lotes</span>
         </div>
 
-        {/* Tabla principal */}
+        {/* ── Tabla principal ── */}
         <div className={`card tabla-card ${actualizando ? 'sincronizando' : ''}`}>
           {cargando ? (
             <div className="vencimiento-estado loading">
               <div className="spinner" />
               <p>Cargando productos...</p>
             </div>
-          ) : productosFiltrados.length === 0 ? (
+          ) : filtrar(productos).length === 0 ? (
             <div className="vencimiento-estado empty">
-              <p>✅ No hay productos que mostrar con los filtros actuales.</p>
+              <p>✅ No hay productos con los filtros seleccionados.</p>
+              {filtro !== 'todos' && (
+                <button className="btn-secondary" style={{ marginTop: '0.5rem' }}
+                  onClick={() => setFiltro('todos')}>
+                  Ver todos los productos
+                </button>
+              )}
             </div>
           ) : (
             <div className="vencimiento-tabla-wrapper">
               <table className="tabla-base">
-                <thead>
-                  <tr>
-                    <th style={{ width: '32px' }}></th>
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    <th>N° Lote</th>
-                    <th>Fecha Entrada</th>
-                    <th>Fecha Vencimiento</th>
-                    <th>Días</th>
-                    <th>Stock</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
+                {encabezadoTabla}
                 <tbody>
-                  {productosFiltrados.map(p => {
-                    const dias  = diasRestantes(p.fecha_vencimiento);
-                    const abierto = panelAbierto === p.id;
-                    return (
-                      <>
-                        <tr key={p.id}
-                          className={`ven-fila ven-fila-${estadoDias(dias)} ${abierto ? 'ven-fila-activa' : ''}`}
-                          style={{ borderLeft: `4px solid ${colorDias(dias)}` }}>
-                          {/* Toggle lotes */}
-                          <td className="ven-toggle-cell">
-                            <button
-                              className={`btn-toggle-lotes ${abierto ? 'abierto' : ''}`}
-                              onClick={() => togglePanel(p.id)}
-                              title={abierto ? 'Ocultar lotes' : 'Ver/gestionar lotes'}
-                            >
-                              {abierto ? '▼' : '▶'}
-                            </button>
-                          </td>
-                          <td className="ven-codigo">{p.codigo || '—'}</td>
-                          <td className="ven-nombre">{p.nombre}</td>
-                          <td className="ven-lote">{p.numero_lote || '—'}</td>
-                          <td className="ven-fecha">{fmt(p.fecha_entrada)}</td>
-                          <td className="ven-fecha">{fmt(p.fecha_vencimiento)}</td>
-                          <td><LabelDias dias={dias} /></td>
-                          <td className="ven-stock">{p.stockactual ?? 0}</td>
-                          <td>
-                            <span className={`ven-badge ven-badge-${p.estado_producto || 'disponible'}`}>
-                              {p.estado_producto || 'disponible'}
-                            </span>
-                          </td>
-                          <td className="ven-acciones">
-                            {p.estado_producto !== 'retirado' && (
-                              <button className="btn-retirar"
-                                onClick={() => marcarRetiradoProducto(p.id, p.nombre)}
-                                title="Marcar producto como retirado">
-                                📤 Retirar
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-
-                        {/* Panel de lotes expandible */}
-                        {abierto && (
-                          <tr key={`lotes-${p.id}`} className="ven-fila-panel">
-                            <td colSpan="10" style={{ padding: 0 }}>
-                              <PanelLotes
-                                producto={p}
-                                abierto={abierto}
-                                onToggle={() => togglePanel(p.id)}
-                              />
-                            </td>
-                          </tr>
-                        )}
-                      </>
-                    );
-                  })}
+                  {filtrar(productos).map(p => (
+                    <FilaProducto
+                      key={p.id}
+                      p={p}
+                      panelAbierto={panelAbierto}
+                      onToggle={togglePanel}
+                      onRetirar={marcarRetirado}
+                      onActualizarPadre={() => cargarProductos(true)}
+                    />
+                  ))}
                 </tbody>
               </table>
             </div>
