@@ -285,7 +285,7 @@ const ControlCaja = () => {
                       </div>
                       <div className="cc-campo">
                         <label>Monto *</label>
-                        <input type="number" className="input-base" min="1" step="100"
+                        <input type="number" className="input-base"
                           placeholder="0"
                           value={nuevoMov.monto}
                           onChange={e => setNuevoMov(p => ({ ...p, monto: e.target.value }))} required />
