@@ -44,7 +44,7 @@
 }
 
 .caja-input {
-  flex: 1;
+  flex: auto;
   padding: 0.75rem 1rem;
   border: 2px solid var(--color-gris-borde);
   border-radius: var(--radio-sm);
