@@ -57,7 +57,7 @@ export function AlertaStockPanel() {
         alignItems: 'center',
         gap: '0.4rem',
       }}>
-        ⚠️ Productos con stock bajo ({productosAlerta.length})
+         Productos con stock bajo ({productosAlerta.length})
       </h3>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
         {productosAlerta.map(p => (

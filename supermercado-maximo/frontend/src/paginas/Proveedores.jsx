@@ -104,7 +104,7 @@ function ListaProveedores({ proveedores, onEditar, onSeleccionar, seleccionado }
     <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
       <div className="prov-lista-header">
         <div className="prov-busqueda-wrap">
-          <span>🔍</span>
+          <span></span>
           <input type="text" className="prov-busqueda" placeholder="Buscar por nombre o NIT..."
             value={filtro} onChange={(e) => setFiltro(e.target.value)} />
         </div>
@@ -135,7 +135,7 @@ function ListaProveedores({ proveedores, onEditar, onSeleccionar, seleccionado }
                   <td>{p.email || '—'}</td>
                   <td>{p.direccion || '—'}</td>
                   <td onClick={(e) => e.stopPropagation()}>
-                    <button className="prov-btn-editar" onClick={() => onEditar(p)}>✏️ Editar</button>
+                    <button className="prov-btn-editar" onClick={() => onEditar(p)}>Editar</button>
                   </td>
                 </tr>
               ))}

@@ -285,7 +285,7 @@ const Inventario = () => {
                   <td>${p.precio.toLocaleString('es-CO')}</td>
                   <td className={p.stockactual < p.stockminimo ? 'stock-bajo' : 'stock-ok'}>
                     {p.stockactual}
-                    {p.stockactual < p.stockminimo && ' ⚠️'}
+                    {p.stockactual < p.stockminimo && ''}
                   </td>
                   <td>{p.stockminimo}</td>
                   <td>{p.proveedor?.nombre || '—'}</td>

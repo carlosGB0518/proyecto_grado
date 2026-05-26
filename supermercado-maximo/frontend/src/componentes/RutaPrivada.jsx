@@ -29,7 +29,7 @@ const RutaPrivada = ({ children, roles = [] }) => {
   if (roles.length > 0 && !roles.includes(usuario.rol)) {
     return (
       <div className="sin-permiso">
-        <h2>🚫 Acceso Restringido</h2>
+        <h2>Acceso Restringido</h2>
         <p>No tienes permisos para acceder a este módulo.</p>
         <p>Tu rol actual es: <strong>{usuario.rol}</strong></p>
       </div>

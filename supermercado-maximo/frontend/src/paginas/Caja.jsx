@@ -63,7 +63,7 @@ const Caja = () => {
       const existe = prev.find(p => p.id === producto.id);
       if (existe) {
         if (existe.cantidad >= producto.stockactual) {
-          setMensaje(`⚠️ Stock máximo: ${producto.stockactual} unidades`);
+          setMensaje(` Stock máximo: ${producto.stockactual} unidades`);
           setTimeout(() => setMensaje(''), 3000);
           return prev;
         }
@@ -76,7 +76,7 @@ const Caja = () => {
   const buscarProducto = () => {
     const encontrado = productos.find(p => p.codigo === codigo.trim());
     if (!encontrado) {
-      setMensaje('⚠️ Producto no encontrado con ese código.');
+      setMensaje(' Producto no encontrado con ese código.');
       setTimeout(() => setMensaje(''), 3000);
     } else {
       agregarAlCarrito(encontrado);
@@ -93,7 +93,7 @@ const Caja = () => {
     if (nueva < 1) return;
     const prod = productos.find(p => p.id === id);
     if (prod && nueva > prod.stockactual) {
-      setMensaje(`⚠️ Stock máximo disponible: ${prod.stockactual}`);
+      setMensaje(` Stock máximo disponible: ${prod.stockactual}`);
       setTimeout(() => setMensaje(''), 3000); return;
     }
     setCarrito(prev => prev.map(p => p.id === id ? { ...p, cantidad: nueva } : p));
@@ -114,14 +114,14 @@ const Caja = () => {
 
   // ── Guardar venta ─────────────────────────────────────────────────
   const guardarVenta = async () => {
-    if (carrito.length === 0) { setMensaje('⚠️ El carrito está vacío.'); return; }
+    if (carrito.length === 0) { setMensaje('El carrito está vacío.'); return; }
     if (metodoPago === 'efectivo' && !tieneMontoSuficiente) {
-      setMensaje('⚠️ El monto pagado no es suficiente para completar la venta.');
+      setMensaje('El monto pagado no es suficiente para completar la venta.');
       return;
     }
     if (procesando) return;
     setProcesando(true);
-    setMensaje('⏳ Procesando venta...');
+    setMensaje('Procesando venta...');
 
     try {
       // 1. Insertar venta
@@ -219,15 +219,15 @@ const Caja = () => {
 
       let msgFinal = `✅ Venta #${ventaInsertada.id} registrada.`;
       if (metodoPago === 'efectivo') msgFinal += ` Cambio: $${cambio.toLocaleString('es-CO')}.`;
-      if (factOk) msgFinal += ' Factura electrónica emitida.';
-      else        msgFinal += ' ⚠️ Factura pendiente (revisa Facturación).';
+      if (factOk) msgFinal += 'Factura electrónica emitida.';
+      else        msgFinal += 'Factura pendiente (revisa Facturación).';
       if (puntosAGanar > 0) msgFinal += ` ⭐ +${puntosAGanar} puntos al cliente.`;
 
       setMensaje(msgFinal);
       if (inputRef.current) inputRef.current.focus();
 
     } catch (err) {
-      setMensaje(`❌ ${err.message}`);
+      setMensaje(` ${err.message}`);
     } finally {
       setProcesando(false);
     }
@@ -438,7 +438,7 @@ const Caja = () => {
 
               <button className="caja-finalizar" onClick={guardarVenta}
                 disabled={carrito.length === 0 || procesando || !tieneMontoSuficiente}>
-                {procesando ? '⏳ Procesando...' : 'Finalizar venta'}
+                {procesando ? ' Procesando...' : 'Finalizar venta'}
               </button>
 
               {mensaje && (

@@ -130,7 +130,7 @@ function FormLote({ productoId, onGuardado, loteEditando, onCancelarEdicion }) {
           </div>
         )}
       </div>
-      {error && <p className="form-lote-error">⚠️ {error}</p>}
+      {error && <p className="form-lote-error"> {error}</p>}
       <div className="form-lote-acciones">
         <button type="submit" className="btn-primary" disabled={guardando}>
           {guardando ? 'Guardando...' : editando ? '💾 Actualizar lote' : '➕ Agregar lote'}
@@ -213,7 +213,7 @@ function PanelLotes({ producto, onActualizarPadre }) {
         {/* ── Columna izquierda: formulario ── */}
         <div className="panel-lotes-form-section">
           <h4 className="panel-lotes-subtitulo">
-            {loteEditando ? '✏️ Editando lote' : '➕ Agregar nuevo lote'}
+            {loteEditando ? ' Editando lote' : 'Agregar nuevo lote'}
             {sincronizando && <span className="sincro-label"> · sincronizando...</span>}
           </h4>
           <FormLote
@@ -227,7 +227,7 @@ function PanelLotes({ producto, onActualizarPadre }) {
         {/* ── Columna derecha: lista de lotes ── */}
         <div className="panel-lotes-lista-section">
           <h4 className="panel-lotes-subtitulo">
-            📦 Lotes registrados
+            Lotes registrados
             {!cargando && <span style={{ fontWeight: 400, color: 'var(--color-texto-suave)', fontSize: '0.82rem' }}>
               {' '}({lotes.length})
             </span>}
@@ -336,7 +336,7 @@ function FilaProducto({ p, panelAbierto, onToggle, onRetirar, onActualizarPadre 
             <button className="btn-retirar"
               onClick={() => onRetirar(p.id, p.nombre)}
               title="Marcar producto como retirado">
-              📤 Retirar
+              Retirar
             </button>
           )}
         </td>
@@ -469,7 +469,7 @@ function GestionVencimientos() {
         {/* ── Header ── */}
         <div className="vencimiento-header">
           <div>
-            <h1 className="vencimiento-titulo">📅 Gestión de Vencimientos</h1>
+            <h1 className="vencimiento-titulo">Gestión de Vencimientos</h1>
             <p className="vencimiento-subtitulo">
               Haz clic en <strong>▶</strong> en cualquier producto para agregar o editar sus lotes y fechas.
             </p>
@@ -540,7 +540,7 @@ function GestionVencimientos() {
               onClick={() => setSinFechaColapsado(p => !p)}
               style={{ cursor: 'pointer' }}>
               <div>
-                <span className="sin-fecha-icono">⚠️</span>
+                <span className="sin-fecha-icono"></span>
                 <span className="sin-fecha-titulo">
                   {productosSinFecha.length} producto{productosSinFecha.length !== 1 ? 's' : ''} sin fecha de vencimiento asignada
                 </span>

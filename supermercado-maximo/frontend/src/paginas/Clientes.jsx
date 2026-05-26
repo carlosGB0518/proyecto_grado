@@ -106,7 +106,7 @@ function Clientes() {
             <h1 className="clientes-titulo">Gestión de Clientes</h1>
             <p className="clientes-subtitulo">Registra clientes y administra su fidelización.</p>
           </div>
-          <button className="btn-primary" onClick={abrirNuevo}>+ Nuevo Cliente</button>
+          <button className="btn-primary" onClick={abrirNuevo}>Nuevo Cliente</button>
         </div>
 
         {mensaje.texto && (
@@ -115,7 +115,7 @@ function Clientes() {
 
         {mostrarFormulario && (
           <div className="clientes-form-card card">
-            <h2 className="clientes-form-titulo">{clienteEditando ? '✏️ Editar' : '➕ Nuevo Cliente'}</h2>
+            <h2 className="clientes-form-titulo">{clienteEditando ? 'Editar' : 'Nuevo Cliente'}</h2>
             <form className="clientes-form" onSubmit={guardar}>
               <div className="clientes-form-grid">
                 <div className="clientes-campo">
@@ -192,7 +192,7 @@ function Clientes() {
         <div className="card" style={{ marginTop: '1.5rem', padding: 0, overflow: 'hidden' }}>
           <div className="clientes-lista-header">
             <div className="clientes-busqueda-wrap">
-              <span>🔍</span>
+              <span></span>
               <input type="text" className="clientes-busqueda"
                 placeholder="Buscar por nombre, correo o ID..."
                 value={busqueda} onChange={e => setBusqueda(e.target.value)} />
