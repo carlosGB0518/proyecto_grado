@@ -41,13 +41,13 @@ const Inicio = () => {
 
       const [ventasRes, productosRes, clientesRes, cajasRes] = await Promise.all([
         supabase.from('ventas').select('total').gte('fecha', hoy.toISOString()).eq('anulada', false),
-        supabase.from('productos').select('stockActual, stockMinimo').eq('activo', true),
+        supabase.from('productos').select('stockactual, stockminimo').eq('activo', true),
         supabase.from('clientes').select('*', { count: 'exact', head: true }),
         supabase.from('caja_sesiones').select('id', { count: 'exact', head: true }).eq('estado', 'abierta'),
       ]);
 
       const totalVentas   = ventasRes.data?.reduce((s, v) => s + (v.total || 0), 0) || 0;
-      const stockBajo     = productosRes.data?.filter(p => p.stockActual < p.stockMinimo).length || 0;
+      const stockBajo     = productosRes.data?.filter(p => p.stockactual < p.stockminimo).length || 0;
 
       setEstadisticas({
         ventasDelDia:       totalVentas,
